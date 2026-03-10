@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Enhance</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --blue:#1f4fd8;--blue-dark:#0a2a66;--blue-light:#e8efff;--teal:#0d9488;--teal-light:#ccfbf1;
+      --surface:#f8faff;--border:#e2e8f4;--text:#1e293b;--muted:#64748b;--white:#ffffff;
+      --error:#ef4444;--success:#22c55e;--accent:#f59e0b;
+      --shadow-lg:0 12px 48px rgba(30,41,100,.18);
+      --font:'DM Sans',sans-serif;--display:'Playfair Display',serif;
+    }
+    body{font-family:var(--font);background:var(--surface);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+    .page-body{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;position:relative;overflow:hidden}
+    .page-body::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(31,79,216,.07),transparent 70%);top:-200px;right:-100px;pointer-events:none}
+    .page-body::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(13,148,136,.07),transparent 70%);bottom:-100px;left:-80px;pointer-events:none}
+    .reg-wrap{display:flex;background:var(--white);border-radius:20px;border:1px solid var(--border);box-shadow:var(--shadow-lg);overflow:hidden;width:960px;max-width:100%;position:relative;z-index:1;animation:fadeUp .5s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .reg-left{flex:1;background:linear-gradient(145deg,#0a2a66,var(--blue) 60%,var(--teal) 100%);padding:52px 44px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+    .reg-left::before{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.05);top:-80px;right:-80px}
+    .reg-left::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-60px;left:-40px}
+    .left-z{position:relative;z-index:1}
+    .left-logo{font-family:var(--display);font-size:30px;color:white;margin-bottom:32px}.left-logo span{color:#6ee7e7}
+    .left-title{font-family:var(--display);font-size:32px;color:white;line-height:1.25;margin-bottom:14px}.left-title em{font-style:italic;color:#fde68a}
+    .left-sub{font-size:15px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:36px}
+    .step-list{display:flex;flex-direction:column;gap:16px}
+    .step-item{display:flex;align-items:center;gap:14px;opacity:.5;transition:opacity .3s}
+    .step-item.active{opacity:1}.step-item.done{opacity:.8}
+    .step-dot{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;transition:all .3s}
+    .step-item.active .step-dot{background:var(--accent);border-color:var(--accent)}
+    .step-item.done .step-dot{background:var(--success);border-color:var(--success)}
+    .step-text{color:rgba(255,255,255,.85);font-size:14px;font-weight:500}
+    .step-item.active .step-text{color:white;font-weight:700}
+    .reg-right{width:480px;flex-shrink:0;padding:48px 44px;overflow-y:auto}
+    .form-header{margin-bottom:28px}
+    .form-title{font-family:var(--display);font-size:28px;color:var(--blue-dark);margin-bottom:6px}
+    .form-sub{font-size:14px;color:var(--muted)}.form-sub a{color:var(--blue);font-weight:600;text-decoration:none}
+    .progress-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:28px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:2px;transition:width .4s ease}
+    .form-group{margin-bottom:16px}
+    .form-label{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+    .label-hint{font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0}
+    .input-wrap{position:relative}
+    .input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+    .form-input{width:100%;padding:11px 14px 11px 40px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s,box-shadow .2s;background:var(--surface);color:var(--text);box-sizing:border-box}
+    .form-input:focus{border-color:var(--blue);background:var(--white);box-shadow:0 0 0 3px rgba(31,79,216,.1)}
+    .form-input.error{border-color:var(--error);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+    .form-input.valid{border-color:var(--success)}
+    .toggle-password{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--muted);padding:0}
+    .field-error{font-size:12px;color:var(--error);margin-top:4px;display:none}.field-error.visible{display:block}
+    .field-success{font-size:12px;color:var(--success);margin-top:4px;display:none}.field-success.visible{display:block}
+    .pwd-strength{margin-top:8px}
+    .pwd-bars{display:flex;gap:4px;margin-bottom:4px}
+    .pwd-bar{height:3px;flex:1;border-radius:2px;background:var(--border);transition:background .3s}
+    .pwd-bar.weak{background:var(--error)}.pwd-bar.medium{background:var(--accent)}.pwd-bar.strong{background:var(--success)}
+    .pwd-label{font-size:11px;color:var(--muted)}
+    .interests-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .interest-chip{background:var(--surface);border:1.5px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;transition:all .15s;font-family:var(--font);color:var(--text);user-select:none}
+    .interest-chip:hover{border-color:var(--blue);background:var(--blue-light)}
+    .interest-chip.selected{background:var(--blue-light);border-color:var(--blue);color:var(--blue);font-weight:700}
+    .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .terms-row{display:flex;align-items:flex-start;gap:10px;margin:18px 0 22px;font-size:13px;color:var(--muted);line-height:1.5}
+    .terms-row input{accent-color:var(--blue);margin-top:2px;flex-shrink:0}
+    .terms-row a{color:var(--blue);font-weight:600;text-decoration:none}
+    .terms-error{font-size:12px;color:var(--error);margin-top:-14px;margin-bottom:14px;display:none}.terms-error.visible{display:block}
+    .btn-submit{width:100%;padding:13px;background:linear-gradient(135deg,var(--blue),var(--teal));color:white;border:none;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--font);transition:all .2s;box-shadow:0 4px 14px rgba(31,79,216,.3)}
+    .btn-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(31,79,216,.35)}
+    .alert{padding:12px 16px;border-radius:10px;font-size:13.5px;font-weight:500;margin-bottom:18px;display:none;align-items:center;gap:8px}
+    .alert.visible{display:flex}.alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+    .success-screen{display:none;text-align:center;padding:20px 0}.success-screen.visible{display:block}
+    .success-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+    .success-title{font-family:var(--display);font-size:26px;color:var(--blue-dark);margin-bottom:10px}
+    .success-sub{font-size:15px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+    .btn-go{display:inline-block;background:linear-gradient(135deg,var(--blue),var(--teal));color:white;padding:13px 32px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:all .2s}
+    .btn-go:hover{transform:translateY(-2px)}
+  </style>
+</head>
+<body>
+
+<header style="background:#fff;box-shadow:0 2px 8px rgba(30,41,100,.07);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;">
+  <a href="index.html" style="font-family:'Playfair Display',serif;font-size:30px;color:#0a2a66;text-decoration:none;">Enhance<span style="color:#0d9488">.</span></a>
+  <div style="font-size:14px;color:#64748b">Already have an account? <a href="login.html" style="color:#1f4fd8;font-weight:600;text-decoration:none">Log in</a></div>
+</header>
+
+<div class="page-body">
+  <div class="reg-wrap">
+    <div class="reg-left">
+      <div class="left-z">
+        <div class="left-logo">Enhance<span>.</span></div>
+        <h2 class="left-title">Start your<br><em>olympiad</em><br>journey today</h2>
+        <p class="left-sub">Join thousands of students training for olympiads and competitive programming competitions.</p>
+      </div>
+      <div class="left-z step-list">
+        <div class="step-item active" id="step1-indicator"><div class="step-dot" id="dot1">1</div><div class="step-text">Your details</div></div>
+        <div class="step-item" id="step2-indicator"><div class="step-dot" id="dot2">2</div><div class="step-text">Set a password</div></div>
+        <div class="step-item" id="step3-indicator"><div class="step-dot" id="dot3">3</div><div class="step-text">Your interests</div></div>
+      </div>
+    </div>
+    <div class="reg-right">
+      <div id="formSection">
+        <div class="form-header">
+          <h1 class="form-title" id="stepTitle">Create your account</h1>
+          <p class="form-sub">Already have one? <a href="login.html">Log in instead</a></p>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:33%"></div></div>
+        <div class="alert error" id="alertError"><span>⚠️</span><span id="alertMsg">Something went wrong.</span></div>
+
+        <!-- STEP 1 -->
+        <div id="step1">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <div class="input-wrap"><span class="input-icon">✏️</span><input type="text" id="firstName" class="form-input" placeholder="Alex"></div>
+              <div class="field-error" id="firstNameError">Required.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <div class="input-wrap"><span class="input-icon">✏️</span><input type="text" id="lastName" class="form-input" placeholder="Chen"></div>
+              <div class="field-error" id="lastNameError">Required.</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username <span class="label-hint">Visible to others</span></label>
+            <div class="input-wrap"><span class="input-icon">👤</span><input type="text" id="regUsername" class="form-input" placeholder="mathwizard99"></div>
+            <div class="field-error" id="usernameError">Please choose a username (3+ characters).</div>
+            <div class="field-success" id="usernameSuccess">✓ Username available!</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <div class="input-wrap"><span class="input-icon">📧</span><input type="email" id="email" class="form-input" placeholder="alex@example.com"></div>
+            <div class="field-error" id="emailError">Please enter a valid email.</div>
+          </div>
+          <button class="btn-submit" onclick="nextStep(1)">Continue →</button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step2" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="regPassword" class="form-input" placeholder="At least 8 characters" oninput="checkStrength()">
+              <button type="button" class="toggle-password" id="togglePwd1">👁</button>
+            </div>
+            <div class="pwd-strength">
+              <div class="pwd-bars"><div class="pwd-bar" id="bar1"></div><div class="pwd-bar" id="bar2"></div><div class="pwd-bar" id="bar3"></div><div class="pwd-bar" id="bar4"></div></div>
+              <div class="pwd-label" id="pwdLabel">Enter a password</div>
+            </div>
+            <div class="field-error" id="passwordError">Password must be at least 8 characters.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="confirmPassword" class="form-input" placeholder="Repeat your password">
+              <button type="button" class="toggle-password" id="togglePwd2">👁</button>
+            </div>
+            <div class="field-error" id="confirmError">Passwords do not match.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Country <span class="label-hint">Optional</span></label>
+            <div class="input-wrap"><span class="input-icon">🌍</span><input type="text" id="country" class="form-input" placeholder="e.g. Mongolia"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:8px">
+            <button class="btn-submit" style="background:var(--surface);color:var(--blue);border:2px solid var(--border);box-shadow:none" onclick="showStep(1)">← Back</button>
+            <button class="btn-submit" onclick="nextStep(2)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div id="step3" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Your interests <span class="label-hint">Pick all that apply</span></label>
+            <div class="interests-grid" id="interestsGrid">
+              <div class="interest-chip" data-val="Number Theory">🔢 Number Theory</div>
+              <div class="interest-chip" data-val="Geometry">📐 Geometry</div>
+              <div class="interest-chip" data-val="Combinatorics">🎲 Combinatorics</div>
+              <div class="interest-chip" data-val="Algebra">🔣 Algebra</div>
+              <div class="interest-chip" data-val="Inequalities">⚖️ Inequalities</div>
+              <div class="interest-chip" data-val="Graph Theory">🌐 Graph Theory</div>
+              <div class="interest-chip" data-val="Algorithms">🔁 Algorithms</div>
+              <div class="interest-chip" data-val="Data Structures">💾 Data Structures</div>
+              <div class="interest-chip" data-val="CP Contests">🏆 CP Contests</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:18px">
+            <label class="form-label">Your level</label>
+            <div class="input-wrap"><span class="input-icon">📊</span>
+              <select id="level" class="form-input" style="appearance:none;cursor:pointer;padding-right:30px">
+                <option value="">Select your level…</option>
+                <option>Complete Beginner</option>
+                <option>Some experience</option>
+                <option>National olympiad level</option>
+                <option>International olympiad level</option>
+                <option>Competitive Programming (Div. 2+)</option>
+              </select>
+            </div>
+          </div>
+          <div class="terms-row">
+            <input type="checkbox" id="termsCheck">
+            <label for="termsCheck">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+          </div>
+          <div class="terms-error" id="termsError">You must agree to the terms.</div>
+          <div style="display:flex;gap:12px">
+            <button class="btn-submit" style="background:var(--surface);color:var(--blue);border:2px solid var(--border);box-shadow:none" onclick="showStep(2)">← Back</button>
+            <button class="btn-submit" id="createBtn" onclick="createAccount()">Create Account 🎉</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="successScreen">
+        <div class="success-circle">🎉</div>
+        <h2 class="success-title">Welcome to Enhance!</h2>
+        <p class="success-sub" id="successMsg">Your account has been created!</p>
+        <a href="index.html" class="btn-go">Start Exploring →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ SHARED UTILS (inlined v2) ══ */
+function getUsers(){try{return JSON.parse(localStorage.getItem("enhance_users")||"{}");}catch{return{};}}
+function saveUsers(u){localStorage.setItem("enhance_users",JSON.stringify(u));}
+function getCurrentUser(){const un=localStorage.getItem("enhance_current_user");if(!un)return null;return getUsers()[un.toLowerCase()]||null;}
+function setCurrentUser(un){localStorage.setItem("enhance_current_user",un);const u=getUsers()[un.toLowerCase()];if(u)localStorage.setItem("username",u.displayName||u.username);}
+function logout(){localStorage.removeItem("enhance_current_user");localStorage.removeItem("username");}
+const ROLE_RANK={creator:4,admin:3,moderator:2,user:1};
+const ROLE_COLORS_LIGHT={creator:{bg:"#fef9c3",color:"#854d0e",border:"#fde68a",icon:"👑",label:"Creator"},admin:{bg:"#fee2e2",color:"#dc2626",border:"#fca5a5",icon:"🛡",label:"Admin"},moderator:{bg:"#ede9fe",color:"#7c3aed",border:"#c4b5fd",icon:"⚔️",label:"Moderator"}};
+function isCreator(){const u=getCurrentUser();return u&&u.role==="creator";}
+function isAdmin(){const u=getCurrentUser();return u&&(u.role==="admin"||u.role==="creator");}
+function isModerator(){const u=getCurrentUser();return u&&(u.role==="creator"||u.role==="admin"||u.role==="moderator");}
+(function(){try{const u=getUsers();let ch=false;if(!u["creator"]){u["creator"]={displayName:"Creator",username:"creator",email:"creator@enhance.com",password:"Creator1234!",role:"creator",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"C",awards:[]};ch=true;}if(!u["admin"]){u["admin"]={displayName:"Admin",username:"admin",email:"admin@enhance.com",password:"Admin1234!",role:"admin",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"A",awards:[]};ch=true;}if(ch)saveUsers(u);}catch(e){}})();
+function timeAgo(ts){const d=(Date.now()-ts)/1000;if(d<60)return"just now";if(d<3600)return Math.floor(d/60)+"m ago";if(d<86400)return Math.floor(d/3600)+"h ago";if(d<604800)return Math.floor(d/86400)+"d ago";return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function escHtml(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function renderMd(raw){return escHtml(raw).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/\*(.*?)\*/g,"<em>$1</em>").replace(/`(.*?)`/g,"<code>$1</code>");}
+function initial(n){return String(n||"?").charAt(0).toUpperCase();}
+const DIFFICULTY_CONFIG={"Easy":{color:"#22c55e",bg:"#f0fdf4",border:"#bbf7d0"},"Medium":{color:"#f59e0b",bg:"#fffbeb",border:"#fde68a"},"Hard":{color:"#ef4444",bg:"#fef2f2",border:"#fecaca"},"Extreme":{color:"#8b5cf6",bg:"#f5f3ff",border:"#ddd6fe"},"Extremely Hard":{color:"#4f46e5",bg:"#eef2ff",border:"#c7d2fe"}};
+function difficultyBadge(d){const c=DIFFICULTY_CONFIG[d];if(!c)return"";return`<span style="background:${c.bg};color:${c.color};border:1px solid ${c.border};font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px">${d}</span>`;}
+function getThreads(){try{return JSON.parse(localStorage.getItem("enhance_threads")||"[]");}catch{return[];}}
+function saveThreads(t){localStorage.setItem("enhance_threads",JSON.stringify(t));}
+function injectHeaderStyles(){const s=document.createElement("style");s.textContent=`.sh-header{background:#fff;box-shadow:0 2px 8px rgba(30,41,100,.07);position:sticky;top:0;z-index:200}.sh-topbar{display:flex;justify-content:flex-end;align-items:center;padding:5px 36px;border-bottom:1px solid #e2e8f4;font-size:13px}.sh-topbar a,.sh-topbar span{margin-left:14px;text-decoration:none;color:#1f4fd8;font-weight:600;cursor:pointer;transition:color .15s}.sh-topbar a:hover,.sh-topbar span:hover{color:#0d9488}.sh-navbar{display:flex;justify-content:space-between;align-items:center;padding:12px 36px}.sh-logo{font-family:'Playfair Display',serif;font-size:32px;color:#0a2a66;text-decoration:none;letter-spacing:-.5px}.sh-logo span{color:#0d9488}.sh-nav{display:flex;gap:26px;align-items:center}.sh-nav a,.sh-nav span{text-decoration:none;color:#1e293b;font-weight:600;font-size:15px;transition:color .15s;cursor:pointer}.sh-nav a:hover,.sh-nav span:hover{color:#1f4fd8}.sh-account-dropdown{position:relative;display:inline-block}.sh-dropdown{display:none;position:absolute;right:0;top:calc(100%+6px);background:#fff;min-width:170px;box-shadow:0 4px 20px rgba(30,41,100,.13);border-radius:10px;border:1px solid #e2e8f4;z-index:300;overflow:hidden}.sh-dropdown a{color:#1e293b!important;padding:10px 16px;display:block;font-size:14px;font-weight:500;text-decoration:none}.sh-dropdown a:hover{background:#e8efff;color:#1f4fd8!important}.sh-dropdown.open{display:block}.sh-math-panel{display:none;position:absolute;top:calc(100%+2px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid #e2e8f4;border-radius:14px;box-shadow:0 12px 48px rgba(30,41,100,.18);padding:20px;gap:14px;z-index:300;width:340px}.sh-math-panel.open{display:flex}.sh-math-wrap{position:relative}.sh-math-card{flex:1;background:#f8faff;border:1px solid #e2e8f4;border-radius:10px;padding:16px;text-decoration:none;color:#1e293b;transition:all .2s}.sh-math-card:hover{background:#e8efff;border-color:#1f4fd8;transform:translateY(-2px)}.sh-math-card h4{font-size:14px;font-weight:700;color:#0a2a66;margin:6px 0 4px}.sh-math-card p{font-size:12px;color:#64748b}`;document.head.appendChild(s);}
+function injectHeader(){const user=getCurrentUser();const dn=localStorage.getItem("username")||"";const rc=user?ROLE_COLORS_LIGHT[user.role]:null;let acc=user?`<div class="sh-account-dropdown"><span onclick="document.getElementById('sh-dd').classList.toggle('open');event.stopPropagation()">👤 ${escHtml(dn)} ${rc?`<span style="font-size:11px;opacity:.7">· ${rc.icon} ${rc.label}</span>`:""} ▾</span><div class="sh-dropdown" id="sh-dd"><a href="profile.html?u=${encodeURIComponent(user.username)}">👤 My Profile</a>${isModerator()?'<a href="admin.html">🛡 Admin Panel</a>':""}<a href="#" onclick="logout();location.href='index.html';">🚪 Log Out</a></div></div>`:`<a href="login.html">Log in</a><a href="registration.html">Sign up</a>`;
+const h=`<header class="sh-header"><div class="sh-topbar"><div id="sh-account-area">${acc}</div></div><div class="sh-navbar"><a href="index.html" class="sh-logo">Enhance<span>.</span></a><nav class="sh-nav"><a href="index.html">Home</a><a href="#">About</a><div class="sh-math-wrap"><span id="sh-math-trigger">Math ▾</span><div id="sh-math-panel" class="sh-math-panel"><a href="forum.html" class="sh-math-card"><div style="font-size:22px">💬</div><h4>Forum</h4><p>Post problems & solutions</p></a><a href="contest.html" class="sh-math-card"><div style="font-size:22px">🏆</div><h4>Contests</h4><p>Admin-curated contest problems</p></a></div></div><a href="#">Competitive Programming</a></nav></div></header>`;
+document.body.insertAdjacentHTML("afterbegin",h);
+document.getElementById("sh-math-trigger").addEventListener("click",e=>{e.stopPropagation();document.getElementById("sh-math-panel").classList.toggle("open");});
+window.addEventListener("click",()=>{document.getElementById("sh-math-panel")?.classList.remove("open");document.getElementById("sh-dd")?.classList.remove("open");});}
+
+if (getCurrentUser()) window.location.href = "index.html";
+
+  function showStep(n) {
+    [1,2,3].forEach(i => {
+      document.getElementById("step" + i).style.display = (i===n)?"block":"none";
+      const ind = document.getElementById("step"+i+"-indicator");
+      const dot = document.getElementById("dot"+i);
+      ind.classList.remove("active","done");
+      if (i < n) { ind.classList.add("done"); dot.textContent="✓"; }
+      else if (i===n) { ind.classList.add("active"); dot.textContent=i; }
+      else dot.textContent=i;
+    });
+    document.getElementById("progressFill").style.width = (n/3*100)+"%";
+    document.getElementById("stepTitle").textContent = ["Create your account","Set your password","Almost done!"][n-1];
+    document.getElementById("alertError").classList.remove("visible");
+  }
+
+  function nextStep(from) {
+    document.getElementById("alertError").classList.remove("visible");
+    if (from===1 && !validateStep1()) return;
+    if (from===2 && !validateStep2()) return;
+    showStep(from+1);
+  }
+
+  function clearErr(id) {
+    document.getElementById(id+"Error")?.classList.remove("visible");
+    document.getElementById(id)?.classList.remove("error");
+  }
+  function showErr(id, msg) {
+    const el = document.getElementById(id+"Error");
+    if (msg && el) el.textContent = msg;
+    el?.classList.add("visible");
+    document.getElementById(id)?.classList.add("error");
+  }
+
+  function validateStep1() {
+    let ok=true;
+    ["firstName","lastName"].forEach(f=>{ clearErr(f); if(!document.getElementById(f).value.trim()){showErr(f);ok=false;} });
+    const un = document.getElementById("regUsername").value.trim();
+    clearErr("regUsername");
+    if (!un || un.length<3) { showErr("regUsername","Username must be 3+ characters."); ok=false; }
+    else {
+      const users = getUsers();
+      if (users[un.toLowerCase()]) { showErr("regUsername","Username already taken."); ok=false; }
+    }
+    clearErr("email");
+    const em = document.getElementById("email").value.trim();
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { showErr("email","Please enter a valid email."); ok=false; }
+    return ok;
+  }
+
+  function validateStep2() {
+    let ok=true;
+    const pwd = document.getElementById("regPassword").value;
+    const conf = document.getElementById("confirmPassword").value;
+    clearErr("password"); clearErr("confirm");
+    if (!pwd||pwd.length<8) { showErr("password","Password must be 8+ characters."); ok=false; }
+    if (pwd!==conf) { showErr("confirm","Passwords do not match."); ok=false; }
+    return ok;
+  }
+
+  function checkStrength() {
+    const pwd = document.getElementById("regPassword").value;
+    const bars = [1,2,3,4].map(i=>document.getElementById("bar"+i));
+    bars.forEach(b=>{ b.className="pwd-bar"; });
+    let score=0;
+    if (pwd.length>=8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    const cls = score<=2?"weak":score<=3?"medium":"strong";
+    const labels=["","Weak","Weak","Medium","Strong","Very strong"];
+    for(let i=0;i<score;i++) bars[i].classList.add(cls);
+    const label = document.getElementById("pwdLabel");
+    label.textContent = labels[score]||"Enter a password";
+    label.style.color = score<=2?"var(--error)":score<=3?"var(--accent)":"var(--success)";
+  }
+
+  function makeToggle(btnId, inputId) {
+    document.getElementById(btnId).addEventListener("click",()=>{
+      const inp = document.getElementById(inputId);
+      inp.type = inp.type==="password"?"text":"password";
+      document.getElementById(btnId).textContent = inp.type==="password"?"👁":"🙈";
+    });
+  }
+  makeToggle("togglePwd1","regPassword");
+  makeToggle("togglePwd2","confirmPassword");
+
+  document.querySelectorAll(".interest-chip").forEach(c=>c.addEventListener("click",()=>c.classList.toggle("selected")));
+
+  document.getElementById("regUsername").addEventListener("input", function(){
+    const val = this.value.trim();
+    const success = document.getElementById("usernameSuccess");
+    const err = document.getElementById("usernameError");
+    success.classList.remove("visible"); err.classList.remove("visible"); this.classList.remove("error","valid");
+    if (val.length>=3) {
+      const users=getUsers();
+      if (users[val.toLowerCase()]) { err.textContent="Username already taken."; err.classList.add("visible"); this.classList.add("error"); }
+      else { success.classList.add("visible"); this.classList.add("valid"); }
+    }
+  });
+
+  function createAccount() {
+    document.getElementById("alertError").classList.remove("visible");
+    if (!document.getElementById("termsCheck").checked) { document.getElementById("termsError").classList.add("visible"); return; }
+    document.getElementById("termsError").classList.remove("visible");
+
+    const firstName = document.getElementById("firstName").value.trim();
+    const lastName  = document.getElementById("lastName").value.trim();
+    const username  = document.getElementById("regUsername").value.trim();
+    const email     = document.getElementById("email").value.trim();
+    const password  = document.getElementById("regPassword").value;
+    const country   = document.getElementById("country").value.trim();
+    const level     = document.getElementById("level").value;
+    const interests = [...document.querySelectorAll(".interest-chip.selected")].map(c=>c.dataset.val);
+
+    const users = getUsers();
+    users[username.toLowerCase()] = {
+      displayName: firstName+" "+lastName,
+      username,
+      email,
+      password,
+      country,
+      level,
+      interests,
+      role: "user",
+      joined: new Date().toISOString(),
+      avatar: firstName.charAt(0).toUpperCase()
+    };
+    saveUsers(users);
+    setCurrentUser(username);
+
+    document.getElementById("formSection").style.display="none";
+    document.getElementById("successMsg").textContent = `Welcome, ${firstName}! Your account is ready. Redirecting…`;
+    document.getElementById("successScreen").classList.add("visible");
+    setTimeout(()=>{ window.location.href="index.html"; }, 2000);
+  }
+</script>
+</body>
+</html>

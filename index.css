@@ -1,0 +1,170 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.header {
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 30px;
+    font-size: 14px;
+}
+
+.account a {
+    margin-left: 15px;
+    text-decoration: none;
+    color: rgb(6, 50, 170);
+    font-weight: bold;
+}
+
+.account span {
+    font-weight: bold;
+    color: rgb(6, 50, 170);
+    cursor: pointer;
+}
+
+.nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+}
+
+.logo {
+    font-size: 42px;
+    color: rgb(6, 50, 170);
+}
+
+.navigation {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.navigation a, .navigation span {
+    text-decoration: none;
+    color: black;
+    font-weight: 600;
+}
+
+/* Hero */
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 60px 80px;
+    background-color: #eaf4f4;
+}
+
+.hero-left {
+    max-width: 500px;
+}
+
+.hero-left h2 {
+    font-size: 38px;
+    margin-bottom: 20px;
+    color: #0a2a66;
+}
+
+.hero-left p {
+    font-size: 18px;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.primary-btn {
+    padding: 12px 24px;
+    background-color: #1f4fd8;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#Eulersbackgroung img {
+    width: 900px;
+    height: 400px;
+    object-fit: contain;
+    margin-left: 100px;
+}
+
+/* Account dropdown */
+#account-area a, #account-area span {
+    margin-left: 15px;
+    font-weight: bold;
+    color: rgb(6, 50, 170);
+    text-decoration: none;
+}
+
+#account-area span:hover, #account-area a:hover {
+    color: #1f4fd8;
+    cursor: pointer;
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 140px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    z-index: 100;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 10px 15px;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f0f4ff;
+}
+
+.show {
+    display: block;
+}
+
+/* Math dropdown */
+.math-options {
+    display: none;
+    padding: 20px 80px;
+    background-color: #f3f7ff;
+    margin-top: 10px;
+    border-radius: 8px;
+    display: flex;
+    gap: 20px;
+}
+
+.math-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+    flex: 1;
+}
+
+.math-card h3 {
+    color: #1f4fd8;
+    margin-bottom: 10px;
+}
+
+.math-card a {
+    font-weight: bold;
+    color: #1f4fd8;
+    text-decoration: none;
+}

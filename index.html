@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhance — Olympiad Math & Competitive Programming</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --blue:#1f4fd8;--blue-dark:#0a2a66;--blue-light:#e8efff;
+      --teal:#0d9488;--teal-light:#ccfbf1;--accent:#f59e0b;--accent2:#ef4444;
+      --surface:#f8faff;--border:#e2e8f4;--text:#1e293b;--muted:#64748b;--white:#ffffff;
+      --shadow-sm:0 1px 4px rgba(30,41,100,.09);--shadow-md:0 4px 20px rgba(30,41,100,.13);--shadow-lg:0 12px 48px rgba(30,41,100,.18);
+      --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--display:'Playfair Display',serif;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:var(--font);color:var(--text);background:var(--white);overflow-x:hidden}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#f0f4ff 0%,#e8faf8 50%,#fef9ee 100%);padding:90px 40px 80px;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(31,79,216,.07) 0%,transparent 70%);top:-200px;right:-150px;pointer-events:none}
+    .hero::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(13,148,136,.07) 0%,transparent 70%);bottom:-150px;left:-100px;pointer-events:none}
+    .hero-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:60px;position:relative;z-index:1}
+    .hero-left{max-width:560px}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;color:var(--blue);margin-bottom:24px;box-shadow:var(--shadow-sm);animation:fadeDown .6s ease forwards}
+    .hero-badge-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+    .hero-title{font-family:var(--display);font-size:58px;line-height:1.1;color:var(--blue-dark);margin-bottom:20px;animation:fadeUp .7s .1s ease both}
+    .hero-title em{font-style:italic;color:var(--teal)}
+    .hero-sub{font-size:18px;color:var(--muted);line-height:1.7;margin-bottom:36px;animation:fadeUp .7s .2s ease both}
+    .hero-buttons{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .7s .3s ease both}
+    .btn-primary{background:linear-gradient(135deg,var(--blue),var(--teal));color:white;border:none;padding:14px 28px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .2s;box-shadow:0 4px 16px rgba(31,79,216,.3);display:inline-flex;align-items:center;gap:8px}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(31,79,216,.35)}
+    .btn-secondary{background:var(--white);color:var(--blue);border:2px solid var(--border);padding:13px 26px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+    .btn-secondary:hover{border-color:var(--blue);background:var(--blue-light);transform:translateY(-2px)}
+    .hero-right{animation:fadeLeft .8s .3s ease both}
+    .hero-card{background:var(--white);border-radius:20px;border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:32px;width:380px;position:relative}
+    .hero-card::before{content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;background:linear-gradient(135deg,rgba(31,79,216,.15),rgba(13,148,136,.15));border-radius:22px;z-index:-1}
+    .hero-card-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+    .hero-card-dot{width:10px;height:10px;border-radius:50%}
+    .hero-card-label{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .hero-problem{font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text);background:var(--surface);border-radius:10px;padding:16px;margin-bottom:16px;border:1px solid var(--border)}
+    .hero-problem .kw{color:var(--blue);font-weight:700}
+    .hero-problem .num{color:var(--teal)}
+    .hero-problem .comment{color:var(--muted)}
+    .hero-tags{display:flex;gap:8px;flex-wrap:wrap}
+    .hero-tag{background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+    .hero-tag.teal{background:var(--teal-light);color:var(--teal)}
+    .hero-tag.amber{background:#fef3c7;color:#92400e}
+
+    /* STATS */
+    .stats-bar{background:var(--blue-dark);padding:28px 40px}
+    .stats-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;gap:20px;flex-wrap:wrap}
+    .stat-item{text-align:center}
+    .stat-number{font-family:var(--display);font-size:36px;color:var(--white);display:block;line-height:1}
+    .stat-number span{color:var(--accent)}
+    .stat-label{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px;font-weight:500;display:block}
+    .stat-divider{width:1px;height:40px;background:rgba(255,255,255,.15)}
+
+    /* FEATURES */
+    .features{padding:90px 40px;background:var(--white)}
+    .section-header{text-align:center;max-width:560px;margin:0 auto 56px}
+    .section-tag{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:14px}
+    .section-title{font-family:var(--display);font-size:40px;color:var(--blue-dark);margin-bottom:14px;line-height:1.2}
+    .section-sub{font-size:16px;color:var(--muted);line-height:1.7}
+    .features-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .feature-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .25s;position:relative;overflow:hidden}
+    .feature-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--teal));transform:scaleX(0);transition:transform .25s}
+    .feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:#c7d9ff}
+    .feature-card:hover::after{transform:scaleX(1)}
+    .feature-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px;background:var(--blue-light)}
+    .feature-icon.teal{background:var(--teal-light)}
+    .feature-icon.amber{background:#fef3c7}
+    .feature-title{font-weight:700;font-size:17px;color:var(--blue-dark);margin-bottom:10px}
+    .feature-desc{font-size:14.5px;color:var(--muted);line-height:1.7}
+
+    /* TOPICS */
+    .topics{padding:80px 40px;background:linear-gradient(135deg,#f0f4ff,#e8faf8)}
+    .topics-inner{max-width:1200px;margin:0 auto}
+    .topics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
+    .topic-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:22px 20px;text-decoration:none;color:var(--text);transition:all .2s;display:flex;flex-direction:column;gap:8px}
+    .topic-card:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:var(--shadow-md)}
+    .topic-emoji{font-size:26px}
+    .topic-name{font-weight:700;font-size:15px;color:var(--blue-dark)}
+    .topic-count{font-size:12px;color:var(--muted)}
+    .topic-bar{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--teal));margin-top:4px}
+
+    /* TESTIMONIALS */
+    .testimonials{padding:80px 40px;background:var(--white)}
+    .testimonials-grid{max-width:1100px;margin:48px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .testimonial-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;transition:all .2s}
+    .testimonial-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+    .testimonial-stars{color:var(--accent);font-size:16px;margin-bottom:14px}
+    .testimonial-text{font-size:14.5px;line-height:1.75;color:var(--text);margin-bottom:18px;font-style:italic}
+    .testimonial-author{display:flex;align-items:center;gap:10px}
+    .testimonial-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white}
+    .testimonial-name{font-weight:700;font-size:14px;color:var(--blue-dark)}
+    .testimonial-role{font-size:12px;color:var(--muted)}
+
+    /* CTA */
+    .cta-section{background:linear-gradient(135deg,var(--blue-dark) 0%,#1a3a8f 50%,#0f5f5a 100%);padding:90px 40px;text-align:center;position:relative;overflow:hidden}
+    .cta-section::before{content:'Enhance';position:absolute;font-family:var(--display);font-size:280px;font-weight:700;color:rgba(255,255,255,.03);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none}
+    .cta-inner{position:relative;z-index:1;max-width:600px;margin:0 auto}
+    .cta-title{font-family:var(--display);font-size:44px;color:var(--white);margin-bottom:16px;line-height:1.2}
+    .cta-title em{font-style:italic;color:#6ee7e7}
+    .cta-sub{font-size:17px;color:rgba(255,255,255,.7);margin-bottom:36px;line-height:1.7}
+    .cta-buttons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+    .btn-white{background:var(--white);color:var(--blue-dark);border:none;padding:14px 28px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+    .btn-white:hover{background:var(--blue-light);transform:translateY(-2px)}
+    .btn-outline-white{background:transparent;color:var(--white);border:2px solid rgba(255,255,255,.4);padding:13px 26px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+    .btn-outline-white:hover{border-color:white;background:rgba(255,255,255,.1);transform:translateY(-2px)}
+
+    /* FOOTER */
+    footer{background:#060f2e;padding:52px 40px 28px;color:rgba(255,255,255,.6)}
+    .footer-inner{max-width:1200px;margin:0 auto}
+    .footer-top{display:flex;justify-content:space-between;gap:40px;margin-bottom:40px;flex-wrap:wrap}
+    .footer-brand p{font-size:14px;margin-top:10px;max-width:260px;line-height:1.7}
+    .footer-col h5{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:14px}
+    .footer-col a{display:block;color:rgba(255,255,255,.5);text-decoration:none;font-size:14px;margin-bottom:8px;transition:color .15s}
+    .footer-col a:hover{color:var(--white)}
+    .footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:20px;display:flex;justify-content:space-between;font-size:13px;flex-wrap:wrap;gap:10px}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeLeft{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+  </style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge"><div class="hero-badge-dot"></div>Now open to all students</div>
+      <h1 class="hero-title">Train Your Mind for<br><em>Olympiad Math</em><br>& CP</h1>
+      <p class="hero-sub">Enhance helps students master deep problem solving, prepare for math olympiads, and compete in programming contests — all in one place.</p>
+      <div class="hero-buttons">
+        <a href="registration.html" class="btn-primary">Get Started Free →</a>
+        <a href="forum.html" class="btn-secondary">📋 Browse Forum</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-card">
+        <div class="hero-card-header">
+          <div class="hero-card-dot" style="background:#ef4444"></div>
+          <div class="hero-card-dot" style="background:#f59e0b"></div>
+          <div class="hero-card-dot" style="background:#22c55e"></div>
+          <span class="hero-card-label" style="margin-left:8px">IMO 2024 — Problem 2</span>
+        </div>
+        <div class="hero-problem">
+          <span class="comment">// Number Theory</span><br>
+          <span class="kw">Let</span> n ∈ ℤ⁺ and<br>
+          a₁, a₂, ..., aₙ be positive integers.<br><br>
+          <span class="kw">Find</span> <span class="num">all</span> functions<br>
+          f: ℤ⁺ → ℤ⁺ such that<br>
+          f(a + b) = f(a) + f(b)<br>
+          <span class="comment">// holds for all a, b</span>
+        </div>
+        <div class="hero-tags">
+          <span class="hero-tag">Number Theory</span>
+          <span class="hero-tag teal">IMO 2024</span>
+          <span class="hero-tag amber">⭐ Hard</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item"><span class="stat-number">2,<span>400</span>+</span><span class="stat-label">Students Enrolled</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-number"><span>850</span>+</span><span class="stat-label">Problems Solved</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-number"><span>120</span>+</span><span class="stat-label">Contest Problems</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-number"><span>40</span>+</span><span class="stat-label">Countries Represented</span></div>
+  </div>
+</div>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features">
+  <div class="section-header">
+    <span class="section-tag">Why Enhance</span>
+    <h2 class="section-title">Everything you need to level up</h2>
+    <p class="section-sub">From olympiad prep to competitive programming — a complete platform built for serious students.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">🧮</div><div class="feature-title">Olympiad Problem Bank</div><p class="feature-desc">Hundreds of curated problems from IMO, USAMO, Putnam and more, organized by topic and difficulty.</p></div>
+    <div class="feature-card"><div class="feature-icon teal">💬</div><div class="feature-title">Community Forum</div><p class="feature-desc">Post problems, share solutions, and discuss approaches with students from around the world.</p></div>
+    <div class="feature-card"><div class="feature-icon amber">🏆</div><div class="feature-title">Weekly Contests</div><p class="feature-desc">Compete in timed contests and track your progress on a live leaderboard.</p></div>
+    <div class="feature-card"><div class="feature-icon">📚</div><div class="feature-title">Study Materials</div><p class="feature-desc">Deep-dive theory notes, handouts, and guides written by olympiad veterans.</p></div>
+    <div class="feature-card"><div class="feature-icon teal">⚡</div><div class="feature-title">Competitive Programming</div><p class="feature-desc">Algorithm challenges, data structures, and CP-specific problem sets to sharpen your code.</p></div>
+    <div class="feature-card"><div class="feature-icon amber">📈</div><div class="feature-title">Progress Tracking</div><p class="feature-desc">See your growth over time with topic-by-topic stats and personal bests.</p></div>
+  </div>
+</section>
+
+<!-- ═══ TOPICS ═══ -->
+<section class="topics">
+  <div class="topics-inner">
+    <div class="section-header">
+      <span class="section-tag">Topics</span>
+      <h2 class="section-title">Explore by subject</h2>
+      <p class="section-sub">Pick your area and start solving. Every topic includes problems from beginner to olympiad level.</p>
+    </div>
+    <div class="topics-grid">
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">🔢</div><div class="topic-name">Number Theory</div><div class="topic-count">142 problems</div><div class="topic-bar" style="width:85%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">📐</div><div class="topic-name">Geometry</div><div class="topic-count">118 problems</div><div class="topic-bar" style="width:72%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">🎲</div><div class="topic-name">Combinatorics</div><div class="topic-count">97 problems</div><div class="topic-bar" style="width:60%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">🔣</div><div class="topic-name">Algebra</div><div class="topic-count">134 problems</div><div class="topic-bar" style="width:80%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">⚖️</div><div class="topic-name">Inequalities</div><div class="topic-count">88 problems</div><div class="topic-bar" style="width:55%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">🌐</div><div class="topic-name">Graph Theory</div><div class="topic-count">76 problems</div><div class="topic-bar" style="width:48%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">🔁</div><div class="topic-name">Algorithms</div><div class="topic-count">103 problems</div><div class="topic-bar" style="width:65%"></div></a>
+      <a href="forum.html" class="topic-card"><div class="topic-emoji">💾</div><div class="topic-name">Data Structures</div><div class="topic-count">91 problems</div><div class="topic-bar" style="width:57%"></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TESTIMONIALS ═══ -->
+<section class="testimonials">
+  <div class="section-header">
+    <span class="section-tag">Community</span>
+    <h2 class="section-title">What students say</h2>
+    <p class="section-sub">Join thousands of students already training on Enhance.</p>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"The forum quality is incredible. I posted an IMO problem and got three different beautiful solutions within a day."</p><div class="testimonial-author"><div class="testimonial-avatar">A</div><div><div class="testimonial-name">Arjun M.</div><div class="testimonial-role">IMO 2024 Participant</div></div></div></div>
+    <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"The CP section helped me go from Codeforces Div 4 to Div 2 in just three months. The problem difficulty progression is perfect."</p><div class="testimonial-author"><div class="testimonial-avatar">S</div><div><div class="testimonial-name">Sofia K.</div><div class="testimonial-role">Competitive Programmer</div></div></div></div>
+    <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"Best free resource for olympiad prep. The geometry handouts alone are worth it — extremely well written and comprehensive."</p><div class="testimonial-author"><div class="testimonial-avatar">L</div><div><div class="testimonial-name">Lucas T.</div><div class="testimonial-role">USAMO Qualifier</div></div></div></div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-title">Ready to <em>Enhance</em><br>your skills?</h2>
+    <p class="cta-sub">Join thousands of students already training on the platform. It's completely free to get started.</p>
+    <div class="cta-buttons">
+      <a href="registration.html" class="btn-white">Create Free Account →</a>
+      <a href="forum.html" class="btn-outline-white">Explore Forum</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span style="font-family:'Playfair Display',serif;font-size:28px;color:white;">Enhance.</span>
+        <p>A community platform for olympiad math and competitive programming students.</p>
+      </div>
+      <div class="footer-col"><h5>Math</h5><a href="forum.html">Forum</a><a href="contest.html">Contests</a><a href="#">Materials</a><a href="#">Problem Bank</a></div>
+      <div class="footer-col"><h5>CP</h5><a href="#">Algorithms</a><a href="#">Data Structures</a><a href="#">Practice</a><a href="#">Leaderboard</a></div>
+      <div class="footer-col"><h5>Account</h5><a href="registration.html">Sign Up</a><a href="login.html">Log In</a><a href="#">Profile</a><a href="#">Settings</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2025 Enhance. All rights reserved.</span><span>Built for students, by students.</span></div>
+  </div>
+</footer>
+
+<script>
+/* ══ SHARED UTILS (inlined v2) ══ */
+function getUsers(){try{return JSON.parse(localStorage.getItem("enhance_users")||"{}");}catch{return{};}}
+function saveUsers(u){localStorage.setItem("enhance_users",JSON.stringify(u));}
+function getCurrentUser(){const un=localStorage.getItem("enhance_current_user");if(!un)return null;return getUsers()[un.toLowerCase()]||null;}
+function setCurrentUser(un){localStorage.setItem("enhance_current_user",un);const u=getUsers()[un.toLowerCase()];if(u)localStorage.setItem("username",u.displayName||u.username);}
+function logout(){localStorage.removeItem("enhance_current_user");localStorage.removeItem("username");}
+const ROLE_RANK={creator:4,admin:3,moderator:2,user:1};
+const ROLE_COLORS_LIGHT={creator:{bg:"#fef9c3",color:"#854d0e",border:"#fde68a",icon:"👑",label:"Creator"},admin:{bg:"#fee2e2",color:"#dc2626",border:"#fca5a5",icon:"🛡",label:"Admin"},moderator:{bg:"#ede9fe",color:"#7c3aed",border:"#c4b5fd",icon:"⚔️",label:"Moderator"}};
+function isCreator(){const u=getCurrentUser();return u&&u.role==="creator";}
+function isAdmin(){const u=getCurrentUser();return u&&(u.role==="admin"||u.role==="creator");}
+function isModerator(){const u=getCurrentUser();return u&&(u.role==="creator"||u.role==="admin"||u.role==="moderator");}
+(function(){try{const u=getUsers();let ch=false;if(!u["creator"]){u["creator"]={displayName:"Creator",username:"creator",email:"creator@enhance.com",password:"Creator1234!",role:"creator",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"C",awards:[]};ch=true;}if(!u["admin"]){u["admin"]={displayName:"Admin",username:"admin",email:"admin@enhance.com",password:"Admin1234!",role:"admin",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"A",awards:[]};ch=true;}if(ch)saveUsers(u);}catch(e){}})();
+function timeAgo(ts){const d=(Date.now()-ts)/1000;if(d<60)return"just now";if(d<3600)return Math.floor(d/60)+"m ago";if(d<86400)return Math.floor(d/3600)+"h ago";if(d<604800)return Math.floor(d/86400)+"d ago";return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function escHtml(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function renderMd(raw){return escHtml(raw).replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/\*(.*?)\*/g,"<em>$1</em>").replace(/`(.*?)`/g,"<code>$1</code>");}
+function initial(n){return String(n||"?").charAt(0).toUpperCase();}
+const DIFFICULTY_CONFIG={"Easy":{color:"#22c55e",bg:"#f0fdf4",border:"#bbf7d0"},"Medium":{color:"#f59e0b",bg:"#fffbeb",border:"#fde68a"},"Hard":{color:"#ef4444",bg:"#fef2f2",border:"#fecaca"},"Extreme":{color:"#8b5cf6",bg:"#f5f3ff",border:"#ddd6fe"},"Extremely Hard":{color:"#4f46e5",bg:"#eef2ff",border:"#c7d2fe"}};
+function difficultyBadge(d){const c=DIFFICULTY_CONFIG[d];if(!c)return"";return`<span style="background:${c.bg};color:${c.color};border:1px solid ${c.border};font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px">${d}</span>`;}
+function getThreads(){try{return JSON.parse(localStorage.getItem("enhance_threads")||"[]");}catch{return[];}}
+function saveThreads(t){localStorage.setItem("enhance_threads",JSON.stringify(t));}
+function injectHeaderStyles(){const s=document.createElement("style");s.textContent=`.sh-header{background:#fff;box-shadow:0 2px 8px rgba(30,41,100,.07);position:sticky;top:0;z-index:200}.sh-topbar{display:flex;justify-content:flex-end;align-items:center;padding:5px 36px;border-bottom:1px solid #e2e8f4;font-size:13px}.sh-topbar a,.sh-topbar span{margin-left:14px;text-decoration:none;color:#1f4fd8;font-weight:600;cursor:pointer;transition:color .15s}.sh-topbar a:hover,.sh-topbar span:hover{color:#0d9488}.sh-navbar{display:flex;justify-content:space-between;align-items:center;padding:12px 36px}.sh-logo{font-family:'Playfair Display',serif;font-size:32px;color:#0a2a66;text-decoration:none;letter-spacing:-.5px}.sh-logo span{color:#0d9488}.sh-nav{display:flex;gap:26px;align-items:center}.sh-nav a,.sh-nav span{text-decoration:none;color:#1e293b;font-weight:600;font-size:15px;transition:color .15s;cursor:pointer}.sh-nav a:hover,.sh-nav span:hover{color:#1f4fd8}.sh-account-dropdown{position:relative;display:inline-block}.sh-dropdown{display:none;position:absolute;right:0;top:calc(100%+6px);background:#fff;min-width:170px;box-shadow:0 4px 20px rgba(30,41,100,.13);border-radius:10px;border:1px solid #e2e8f4;z-index:300;overflow:hidden}.sh-dropdown a{color:#1e293b!important;padding:10px 16px;display:block;font-size:14px;font-weight:500;text-decoration:none}.sh-dropdown a:hover{background:#e8efff;color:#1f4fd8!important}.sh-dropdown.open{display:block}.sh-math-panel{display:none;position:absolute;top:calc(100%+2px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid #e2e8f4;border-radius:14px;box-shadow:0 12px 48px rgba(30,41,100,.18);padding:20px;gap:14px;z-index:300;width:340px}.sh-math-panel.open{display:flex}.sh-math-wrap{position:relative}.sh-math-card{flex:1;background:#f8faff;border:1px solid #e2e8f4;border-radius:10px;padding:16px;text-decoration:none;color:#1e293b;transition:all .2s}.sh-math-card:hover{background:#e8efff;border-color:#1f4fd8;transform:translateY(-2px)}.sh-math-card h4{font-size:14px;font-weight:700;color:#0a2a66;margin:6px 0 4px}.sh-math-card p{font-size:12px;color:#64748b}`;document.head.appendChild(s);}
+function injectHeader(){const user=getCurrentUser();const dn=localStorage.getItem("username")||"";const rc=user?ROLE_COLORS_LIGHT[user.role]:null;let acc=user?`<div class="sh-account-dropdown"><span onclick="document.getElementById('sh-dd').classList.toggle('open');event.stopPropagation()">👤 ${escHtml(dn)} ${rc?`<span style="font-size:11px;opacity:.7">· ${rc.icon} ${rc.label}</span>`:""} ▾</span><div class="sh-dropdown" id="sh-dd"><a href="profile.html?u=${encodeURIComponent(user.username)}">👤 My Profile</a>${isModerator()?'<a href="admin.html">🛡 Admin Panel</a>':""}<a href="#" onclick="logout();location.href='index.html';">🚪 Log Out</a></div></div>`:`<a href="login.html">Log in</a><a href="registration.html">Sign up</a>`;
+const h=`<header class="sh-header"><div class="sh-topbar"><div id="sh-account-area">${acc}</div></div><div class="sh-navbar"><a href="index.html" class="sh-logo">Enhance<span>.</span></a><nav class="sh-nav"><a href="index.html">Home</a><a href="#">About</a><div class="sh-math-wrap"><span id="sh-math-trigger">Math ▾</span><div id="sh-math-panel" class="sh-math-panel"><a href="forum.html" class="sh-math-card"><div style="font-size:22px">💬</div><h4>Forum</h4><p>Post problems & solutions</p></a><a href="contest.html" class="sh-math-card"><div style="font-size:22px">🏆</div><h4>Contests</h4><p>Admin-curated contest problems</p></a></div></div><a href="#">Competitive Programming</a></nav></div></header>`;
+document.body.insertAdjacentHTML("afterbegin",h);
+document.getElementById("sh-math-trigger").addEventListener("click",e=>{e.stopPropagation();document.getElementById("sh-math-panel").classList.toggle("open");});
+window.addEventListener("click",()=>{document.getElementById("sh-math-panel")?.classList.remove("open");document.getElementById("sh-dd")?.classList.remove("open");});}
+
+  injectHeaderStyles();
+  injectHeader("home");
+</script>
+</body>
+</html>

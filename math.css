@@ -1,0 +1,24 @@
+.math-sections {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    padding: 80px;
+}
+
+.math-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+.math-card h3 {
+    color: #1f4fd8;
+    margin-bottom: 10px;
+}
+
+.math-card a {
+    font-weight: bold;
+    color: #1f4fd8;
+    text-decoration: none;
+}

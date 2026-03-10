@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel | Enhance</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#1f2937;--border:#30363d;
+  --blue:#1f4fd8;--blue-light:#e8efff;--teal:#0d9488;
+  --text:#e6edf3;--muted:#8b949e;--white:#fff;
+  --creator:#a16207;--creator-bg:#fef9c3;
+  --admin:#ef4444;--mod:#8b5cf6;--user:#64748b;
+  --success:#22c55e;--error:#ef4444;--accent:#f59e0b;
+  --font:'DM Sans',sans-serif;--display:'Playfair Display',serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.admin-layout{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.admin-sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow-y:auto}
+.admin-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.admin-logo a{font-family:var(--display);font-size:22px;color:var(--text);text-decoration:none}
+.admin-logo a span{color:#0d9488}
+.admin-logo .admin-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:2px}
+.admin-nav{flex:1;padding:10px 0}
+.admin-nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.admin-nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-radius:0;transition:all .14s;font-size:13.5px;color:var(--muted);font-weight:500;border-left:3px solid transparent}
+.admin-nav-item:hover{background:var(--surface2);color:var(--text)}
+.admin-nav-item.active{background:rgba(31,79,216,.12);color:#6ea8fe;border-left-color:#1f4fd8}
+.admin-nav-icon{font-size:15px;width:20px;text-align:center}
+.admin-sidebar-foot{padding:14px 16px;border-top:1px solid var(--border)}
+.admin-user-name{font-weight:700;font-size:13px;color:var(--text)}
+.admin-user-role{font-size:10.5px;color:var(--muted);margin-top:2px}
+.btn-logout{width:100%;margin-top:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5;padding:7px;border-radius:7px;cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:600;transition:all .14s}
+.btn-logout:hover{background:rgba(239,68,68,.2)}
+
+/* MAIN */
+.admin-main{flex:1;overflow-y:auto;padding:28px 32px}
+.panel{display:none}.panel.active{display:block}
+.panel-header{margin-bottom:22px}
+.panel-header h2{font-family:var(--display);font-size:26px;color:var(--text);margin-bottom:4px}
+.panel-header p{font-size:13.5px;color:var(--muted)}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:26px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.teal::before{background:var(--teal)}
+.stat-card.purple::before{background:var(--mod)}
+.stat-card.gold::before{background:#f59e0b}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:6px}
+.stat-val{font-family:var(--display);font-size:30px;color:var(--text);line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* TABLES */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.table-title{font-weight:700;font-size:14px;color:var(--text)}
+.table-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid rgba(48,54,61,.5);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.inp-sm{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;font-family:var(--font);background:var(--surface2);color:var(--text);outline:none}
+.inp-sm:focus{border-color:var(--blue)}
+.sel-sm{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;font-family:var(--font);background:var(--surface2);color:var(--text);outline:none;cursor:pointer}
+.action-btn{padding:4px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all .12s}
+.action-btn.primary{background:rgba(31,79,216,.2);color:#6ea8fe;border:1px solid rgba(31,79,216,.3)}
+.action-btn.primary:hover{background:rgba(31,79,216,.35)}
+.action-btn.success{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.25)}
+.action-btn.success:hover{background:rgba(34,197,94,.28)}
+.action-btn.danger{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.action-btn.danger:hover{background:rgba(239,68,68,.24)}
+.action-btn.warn{background:rgba(245,158,11,.12);color:#fcd34d;border:1px solid rgba(245,158,11,.2)}
+.action-btn.warn:hover{background:rgba(245,158,11,.24)}
+.action-btn.purple{background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.25)}
+.action-btn.purple:hover{background:rgba(139,92,246,.28)}
+
+/* BADGES */
+.rbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.rbadge-creator{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.rbadge-admin{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.rbadge-mod{background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.2)}
+.rbadge-user{background:rgba(100,116,139,.1);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.08)}
+
+/* PANELS */
+.section-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.section-panel h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.section-panel p{font-size:12.5px;color:var(--muted)}
+.contest-section-list{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.cs-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.cs-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.cs-info{flex:1}
+.cs-name{font-weight:700;font-size:13px;color:var(--text)}
+.cs-desc{font-size:11.5px;color:var(--muted);margin-top:1px}
+.cs-count{font-size:11.5px;color:var(--muted)}
+
+/* AWARDS */
+.award-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;display:flex;align-items:center;gap:12px}
+.award-badge-preview{font-size:18px}
+.award-info{flex:1;min-width:0}
+.award-user{font-weight:700;font-size:13px;color:var(--text)}
+.award-label{font-size:12px;color:var(--muted)}
+
+/* LOG */
+.log-item{padding:9px 14px;border-bottom:1px solid rgba(48,54,61,.4);display:flex;align-items:flex-start;gap:10px;font-size:12.5px}
+.log-item:last-child{border-bottom:none}
+.log-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.log-msg{flex:1;color:var(--muted)}
+.log-msg strong{color:var(--text)}
+.log-time{font-size:11px;color:var(--muted);flex-shrink:0;margin-top:1px}
+
+/* MODAL */
+.m-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:900;align-items:center;justify-content:center}
+.m-ov.active{display:flex}
+.m-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:88vh;overflow-y:auto;animation:mIn .22s cubic-bezier(.34,1.46,.64,1)}
+.m-box.w440{width:440px;max-width:95vw}
+.m-box.w560{width:560px;max-width:95vw}
+@keyframes mIn{from{opacity:0;transform:scale(.9) translateY(-12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.m-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.m-hd-title{font-weight:700;font-size:14.5px;color:var(--text)}
+.m-close{background:rgba(255,255,255,.08);border:none;color:var(--text);width:27px;height:27px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.m-close:hover{background:rgba(255,255,255,.16)}
+.m-bd{padding:18px 20px}
+.m-ft{padding:13px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px}
+.lbl{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;margin-top:13px}
+.lbl:first-child{margin-top:0}
+.inp{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;font-family:var(--font);background:var(--surface2);color:var(--text);outline:none;transition:border .18s;box-sizing:border-box}
+.inp:focus{border-color:var(--blue)}
+.sel{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;font-family:var(--font);background:var(--surface2);color:var(--text);outline:none;cursor:pointer}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:13px}
+.btn-cancel{background:rgba(255,255,255,.06);border:1px solid var(--border);padding:8px 15px;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:600;color:var(--muted)}
+.btn-cancel:hover{background:rgba(255,255,255,.1)}
+.btn-ok{background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font)}
+.btn-ok:hover{transform:translateY(-1px)}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font)}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:11px 17px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:1000;opacity:0;transform:translateY(7px);transition:all .28s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<div class="admin-layout">
+<!-- ── SIDEBAR ── -->
+<div class="admin-sidebar">
+  <div class="admin-logo">
+    <a href="index.html">Enhance<span>.</span></a>
+    <div class="admin-tag">Control Panel</div>
+  </div>
+  <nav class="admin-nav">
+    <div class="admin-nav-section">Overview</div>
+    <div class="admin-nav-item active" onclick="showPanel('overview',this)"><span class="admin-nav-icon">📊</span> Overview</div>
+    <div class="admin-nav-section">Content</div>
+    <div class="admin-nav-item" onclick="showPanel('threads',this)"><span class="admin-nav-icon">💬</span> Forum Threads</div>
+    <div class="admin-nav-item" onclick="showPanel('posts',this)"><span class="admin-nav-icon">📝</span> All Posts</div>
+    <div class="admin-nav-item" onclick="showPanel('contest-sections',this)"><span class="admin-nav-icon">🏆</span> Contest Sections</div>
+    <div class="admin-nav-section">Community</div>
+    <div class="admin-nav-item" onclick="showPanel('users',this)"><span class="admin-nav-icon">👥</span> Manage Users</div>
+    <div class="admin-nav-item" onclick="showPanel('roles',this)"><span class="admin-nav-icon">🛡</span> Roles</div>
+    <div class="admin-nav-item" onclick="showPanel('awards',this)"><span class="admin-nav-icon">🏅</span> Awards</div>
+    <div class="admin-nav-section">System</div>
+    <div class="admin-nav-item" onclick="showPanel('logs',this)"><span class="admin-nav-icon">📋</span> Activity Logs</div>
+  </nav>
+  <div class="admin-sidebar-foot">
+    <div class="admin-user-name" id="adminUserName">–</div>
+    <div class="admin-user-role" id="adminRoleLabel">–</div>
+    <button class="btn-logout" onclick="logout();location.href='index.html'">🚪 Sign Out</button>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="admin-main">
+
+  <!-- OVERVIEW -->
+  <div id="panel-overview" class="panel active">
+    <div class="panel-header"><h2>Overview</h2><p>Platform statistics and recent activity</p></div>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="table-wrap">
+      <div class="table-head"><span class="table-title">Recent Forum Threads</span></div>
+      <table><thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Replies</th><th>Actions</th></tr></thead>
+      <tbody id="recentThreadsBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- THREADS -->
+  <div id="panel-threads" class="panel">
+    <div class="panel-header"><h2>Forum Threads</h2><p>Search, filter and manage all forum threads</p></div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">All Threads</span>
+        <div class="table-controls">
+          <input class="inp-sm" id="threadSearch" placeholder="Search…" oninput="renderThreadsPanel()">
+          <select class="sel-sm" id="threadCatFilter" onchange="renderThreadsPanel()">
+            <option value="">All Categories</option>
+            <option value="olympiad">Olympiad</option>
+            <option value="algebra">Algebra</option>
+            <option value="geometry">Geometry</option>
+            <option value="numtheory">Number Theory</option>
+            <option value="combo">Combinatorics</option>
+            <option value="discussion">General</option>
+            <option value="resources">Resources</option>
+          </select>
+        </div>
+      </div>
+      <table><thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Difficulty</th><th>Replies</th><th>Actions</th></tr></thead>
+      <tbody id="threadsBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- POSTS -->
+  <div id="panel-posts" class="panel">
+    <div class="panel-header"><h2>All Posts</h2><p>View and moderate all forum posts</p></div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">All Replies</span>
+        <div class="table-controls"><input class="inp-sm" id="postSearch" placeholder="Search content…" oninput="renderPostsPanel()"></div>
+      </div>
+      <table><thead><tr><th>Author</th><th>Content</th><th>Thread</th><th>Posted</th><th>Actions</th></tr></thead>
+      <tbody id="postsBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- CONTEST SECTIONS -->
+  <div id="panel-contest-sections" class="panel">
+    <div class="panel-header"><h2>Contest Sections</h2><p>Manage the categories that organize contests on the contest page</p></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="action-btn success" onclick="openNewSectionModal()">＋ Add Section</button>
+    </div>
+    <div class="contest-section-list" id="contestSectionList"></div>
+  </div>
+
+  <!-- USERS -->
+  <div id="panel-users" class="panel">
+    <div class="panel-header"><h2>Manage Users</h2><p>View, search and manage user accounts</p></div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">All Users</span>
+        <div class="table-controls">
+          <input class="inp-sm" id="userSearch" placeholder="Search users…" oninput="renderUsersPanel()">
+          <select class="sel-sm" id="userRoleFilter" onchange="renderUsersPanel()">
+            <option value="">All Roles</option>
+            <option value="creator">Creator</option>
+            <option value="admin">Admin</option>
+            <option value="moderator">Moderator</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+      </div>
+      <table><thead><tr><th>User</th><th>Role</th><th>Country</th><th>Awards</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody id="usersBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ROLES -->
+  <div id="panel-roles" class="panel">
+    <div class="panel-header"><h2>Roles</h2><p>Manage user roles and permissions</p></div>
+    <div class="section-panel" style="margin-bottom:18px">
+      <h3>Role Hierarchy</h3>
+      <p style="margin-top:8px;line-height:1.8">
+        <span class="rbadge rbadge-creator">👑 Creator</span> — Supreme authority. Can manage all users including Admins. Cannot demote themselves.<br>
+        <span class="rbadge rbadge-admin">🛡 Admin</span> — Can manage Moderators and Users. Cannot touch Creator or other Admins.<br>
+        <span class="rbadge rbadge-mod">⚔️ Moderator</span> — Can delete posts/threads. Cannot manage users.<br>
+        <span class="rbadge rbadge-user">👤 User</span> — Standard member. Can post, reply, like.
+      </p>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><span class="table-title">All Users</span></div>
+      <table><thead><tr><th>User</th><th>Current Role</th><th>Actions</th></tr></thead>
+      <tbody id="rolesTableBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- AWARDS -->
+  <div id="panel-awards" class="panel">
+    <div class="panel-header"><h2>Awards</h2><p>Grant competition medals and achievement badges to users</p></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="action-btn success" onclick="openGrantAwardModal()">🏅 Grant Award</button>
+    </div>
+    <div class="table-wrap" style="margin-bottom:18px">
+      <div class="table-head"><span class="table-title">All Awarded Users</span></div>
+      <table><thead><tr><th>User</th><th>Award</th><th>Type</th><th>Granted By</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="awardsBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- LOGS -->
+  <div id="panel-logs" class="panel">
+    <div class="panel-header"><h2>Activity Logs</h2><p>Audit trail of all admin actions</p></div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">Logs</span>
+        <div class="table-controls">
+          <input class="inp-sm" id="logSearch" placeholder="Search logs…" oninput="renderLogsPanel()">
+          <button class="action-btn danger" onclick="clearLogs()">Clear Logs</button>
+        </div>
+      </div>
+      <div id="logsList"></div>
+    </div>
+  </div>
+
+</div><!-- /admin-main -->
+</div><!-- /admin-layout -->
+
+<!-- ROLE MODAL -->
+<div class="m-ov" id="roleModal">
+  <div class="m-box w440">
+    <div class="m-hd"><span class="m-hd-title">Change Role</span><button class="m-close" onclick="closeRoleModal()">✕</button></div>
+    <div class="m-bd">
+      <div id="roleModalUser" style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px"></div>
+      <label class="lbl">New Role</label>
+      <select class="sel" id="roleModalSelect"></select>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6">You can only assign roles below your own rank.</p>
+    </div>
+    <div class="m-ft"><button class="btn-cancel" onclick="closeRoleModal()">Cancel</button><button class="btn-ok" onclick="confirmRoleChange()">Save Role</button></div>
+  </div>
+</div>
+
+<!-- GRANT AWARD MODAL -->
+<div class="m-ov" id="awardModal">
+  <div class="m-box w560">
+    <div class="m-hd"><span class="m-hd-title">🏅 Grant Award</span><button class="m-close" onclick="closeAwardModal()">✕</button></div>
+    <div class="m-bd">
+      <label class="lbl">User</label>
+      <select class="sel" id="awardUser"></select>
+      <div class="g2">
+        <div>
+          <label class="lbl" style="margin-top:0">Award Type</label>
+          <select class="sel" id="awardType" onchange="updateAwardLabel()">
+            <option value="gold">🥇 Gold Medal</option>
+            <option value="silver">🥈 Silver Medal</option>
+            <option value="bronze">🥉 Bronze Medal</option>
+            <option value="honorable">🏅 Honorable Mention</option>
+            <option value="participant">📜 Participant</option>
+            <option value="special">⭐ Special Award</option>
+            <option value="custom">🎖 Custom</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl" style="margin-top:0">Year</label>
+          <input class="inp" id="awardYear" placeholder="e.g. 2024">
+        </div>
+      </div>
+      <label class="lbl">Competition</label>
+      <input class="inp" id="awardComp" placeholder="e.g. IMO, USAMO, APMO, Balkan MO…">
+      <label class="lbl">Award Label (shown on profile)</label>
+      <input class="inp" id="awardLabel" placeholder="e.g. IMO 2024 Gold Medal">
+      <label class="lbl">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">Optional</span></label>
+      <input class="inp" id="awardNotes" placeholder="Any additional notes">
+      <div style="margin-top:14px;padding:12px;background:var(--surface2);border-radius:8px;font-size:12.5px;color:var(--muted)">
+        Preview: <span id="awardPreview" style="color:var(--text);font-weight:600">—</span>
+      </div>
+    </div>
+    <div class="m-ft"><button class="btn-cancel" onclick="closeAwardModal()">Cancel</button><button class="btn-ok" onclick="grantAward()">Grant Award 🏅</button></div>
+  </div>
+</div>
+
+<!-- NEW SECTION MODAL -->
+<div class="m-ov" id="sectionModal">
+  <div class="m-box w440">
+    <div class="m-hd"><span class="m-hd-title">＋ Add Contest Section</span><button class="m-close" onclick="closeSectionModal()">✕</button></div>
+    <div class="m-bd">
+      <label class="lbl">Section Name *</label>
+      <input class="inp" id="secName" placeholder="e.g. International Olympiads">
+      <label class="lbl">Icon (emoji)</label>
+      <input class="inp" id="secIcon" placeholder="e.g. 🌍" maxlength="4">
+      <label class="lbl">Description</label>
+      <input class="inp" id="secDesc" placeholder="Brief description of this section">
+      <label class="lbl">Order (lower = first)</label>
+      <input class="inp" id="secOrder" type="number" value="99">
+    </div>
+    <div class="m-ft"><button class="btn-cancel" onclick="closeSectionModal()">Cancel</button><button class="btn-ok" onclick="createSection()">Add Section</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="m-ov" id="confirmModal">
+  <div class="m-box w440">
+    <div class="m-hd"><span class="m-hd-title">⚠️ Confirm Action</span><button class="m-close" onclick="closeConfirm()">✕</button></div>
+    <div class="m-bd"><p id="confirmMsg" style="font-size:14px;line-height:1.6;color:var(--muted)"></p></div>
+    <div class="m-ft"><button class="btn-cancel" onclick="closeConfirm()">Cancel</button><button class="btn-danger" id="confirmBtn">Delete</button></div>
+  </div>
+</div>
+
+<script>
+/* ══ SHARED UTILS (inlined) ══ */
+function getUsers(){try{return JSON.parse(localStorage.getItem("enhance_users")||"{}");}catch{return{};}}
+function saveUsers(u){localStorage.setItem("enhance_users",JSON.stringify(u));}
+function getCurrentUser(){const un=localStorage.getItem("enhance_current_user");if(!un)return null;return getUsers()[un.toLowerCase()]||null;}
+function setCurrentUser(un){localStorage.setItem("enhance_current_user",un);const u=getUsers()[un.toLowerCase()];if(u)localStorage.setItem("username",u.displayName||u.username);}
+function logout(){localStorage.removeItem("enhance_current_user");localStorage.removeItem("username");}
+const ROLE_RANK={creator:4,admin:3,moderator:2,user:1};
+function isCreator(){const u=getCurrentUser();return u&&u.role==="creator";}
+function isAdmin(){const u=getCurrentUser();return u&&(u.role==="admin"||u.role==="creator");}
+function isModerator(){const u=getCurrentUser();return u&&(u.role==="creator"||u.role==="admin"||u.role==="moderator");}
+function canManageUser(targetRole){const me=getCurrentUser();if(!me)return false;return(ROLE_RANK[me.role]||1)>(ROLE_RANK[targetRole]||1);}
+function canSetRole(newRole){const me=getCurrentUser();if(!me)return false;return(ROLE_RANK[me.role]||1)>(ROLE_RANK[newRole]||1);}
+(function(){try{const u=getUsers();let changed=false;if(!u["creator"]){u["creator"]={displayName:"Creator",username:"creator",email:"creator@enhance.com",password:"Creator1234!",role:"creator",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"C",awards:[]};changed=true;}if(!u["admin"]){u["admin"]={displayName:"Admin",username:"admin",email:"admin@enhance.com",password:"Admin1234!",role:"admin",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"A",awards:[]};changed=true;}if(changed)saveUsers(u);}catch(e){}})();
+function timeAgo(ts){const d=(Date.now()-ts)/1000;if(d<60)return"just now";if(d<3600)return Math.floor(d/60)+"m ago";if(d<86400)return Math.floor(d/3600)+"h ago";if(d<604800)return Math.floor(d/86400)+"d ago";return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function getThreads(){try{return JSON.parse(localStorage.getItem("enhance_threads")||"[]");}catch{return[];}}
+function saveThreads(t){localStorage.setItem("enhance_threads",JSON.stringify(t));}
+function getContestArchive(){try{return JSON.parse(localStorage.getItem("enhance_contest_archive")||"[]");}catch{return[];}}
+function saveContestArchive(d){localStorage.setItem("enhance_contest_archive",JSON.stringify(d));}
+function getContestSections(){try{return JSON.parse(localStorage.getItem("enhance_contest_sections")||"null")||defaultSections();}catch{return defaultSections();}}
+function saveContestSections(s){localStorage.setItem("enhance_contest_sections",JSON.stringify(s));}
+function defaultSections(){return[
+  {id:1,name:"International Olympiads",icon:"🌍",desc:"IMO, APMO, EGMO, Balkan MO and other international competitions",order:1},
+  {id:2,name:"National Olympiads",icon:"🏛",desc:"USAMO, BMO, and country-level competitions",order:2},
+  {id:3,name:"Shortlists",icon:"📋",desc:"IMO Shortlist, USAMO Shortlist and similar problem collections",order:3},
+  {id:4,name:"Training & Selection",icon:"🎯",desc:"Team selection tests and training problem sets",order:4},
+  {id:5,name:"Other Competitions",icon:"🏆",desc:"Regional olympiads and other math competitions",order:5},
+];}
+function getLogs(){try{return JSON.parse(localStorage.getItem("enhance_admin_logs")||"[]");}catch{return[];}}
+function saveLogs(l){localStorage.setItem("enhance_admin_logs",JSON.stringify(l.slice(0,200)));}
+function addLog(icon,msg){const logs=getLogs();logs.unshift({icon,msg,ts:Date.now(),by:getCurrentUser()?.displayName||"?"});saveLogs(logs);}
+
+/* ── ACCESS CHECK ── */
+const me = getCurrentUser();
+if(!me||!isModerator()){location.href="index.html";}
+document.getElementById("adminUserName").textContent = me.displayName||me.username;
+const roleLabels={creator:"👑 Creator",admin:"🛡 Administrator",moderator:"⚔️ Moderator"};
+document.getElementById("adminRoleLabel").textContent = roleLabels[me.role]||me.role;
+
+/* ── ROLE BADGE HTML ── */
+function roleBadge(role){
+  const cls={creator:"rbadge-creator",admin:"rbadge-admin",moderator:"rbadge-mod",user:"rbadge-user"};
+  const icons={creator:"👑",admin:"🛡",moderator:"⚔️",user:"👤"};
+  const labels={creator:"Creator",admin:"Admin",moderator:"Moderator",user:"User"};
+  return `<span class="rbadge ${cls[role]||'rbadge-user'}">${icons[role]||"👤"} ${labels[role]||role}</span>`;
+}
+
+/* ── PANEL SWITCHING ── */
+function showPanel(name, el){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".admin-nav-item").forEach(i=>i.classList.remove("active"));
+  document.getElementById("panel-"+name).classList.add("active");
+  if(el) el.classList.add("active");
+  const renders={overview:renderOverview,threads:renderThreadsPanel,posts:renderPostsPanel,"contest-sections":renderSectionsPanel,users:renderUsersPanel,roles:renderRolesPanel,awards:renderAwardsPanel,logs:renderLogsPanel};
+  if(renders[name]) renders[name]();
+}
+
+/* ── OVERVIEW ── */
+function renderOverview(){
+  const users=Object.values(getUsers());
+  const threads=getThreads();
+  const posts=threads.reduce((s,t)=>s+(t.posts||[]).length,0);
+  const mods=users.filter(u=>u.role==="moderator"||u.role==="admin").length;
+  const awards=users.reduce((s,u)=>s+(u.awards||[]).length,0);
+  document.getElementById("statGrid").innerHTML=`
+    <div class="stat-card blue"><div class="stat-label">Users</div><div class="stat-val">${users.length}</div><div class="stat-sub">Registered members</div></div>
+    <div class="stat-card teal"><div class="stat-label">Threads</div><div class="stat-val">${threads.length}</div><div class="stat-sub">Forum threads</div></div>
+    <div class="stat-card"><div class="stat-label">Posts</div><div class="stat-val">${posts}</div><div class="stat-sub">Total replies</div></div>
+    <div class="stat-card purple"><div class="stat-label">Staff</div><div class="stat-val">${mods}</div><div class="stat-sub">Admins & mods</div></div>
+    <div class="stat-card gold"><div class="stat-label">Awards</div><div class="stat-val">${awards}</div><div class="stat-sub">Granted to users</div></div>`;
+  const recent=threads.slice().sort((a,b)=>b.id-a.id).slice(0,8);
+  document.getElementById("recentThreadsBody").innerHTML=recent.map(t=>`
+    <tr><td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong>${esc(t.title)}</strong></td>
+    <td>${esc(t.author)}</td><td><span style="font-size:11px;color:var(--muted)">${t.category||""}</span></td>
+    <td>${(t.posts||[]).length-1}</td>
+    <td><button class="action-btn danger" onclick="adminDelThread(${t.id})">🗑</button></td></tr>`).join("");
+}
+
+/* ── THREADS PANEL ── */
+function renderThreadsPanel(){
+  const q=document.getElementById("threadSearch").value.toLowerCase();
+  const cat=document.getElementById("threadCatFilter").value;
+  let threads=getThreads();
+  if(q) threads=threads.filter(t=>t.title.toLowerCase().includes(q)||t.author.toLowerCase().includes(q));
+  if(cat) threads=threads.filter(t=>t.category===cat);
+  threads.sort((a,b)=>b.id-a.id);
+  const dc={"Easy":"#22c55e","Medium":"#f59e0b","Hard":"#ef4444","Extreme":"#8b5cf6","Extremely Hard":"#4f46e5"};
+  document.getElementById("threadsBody").innerHTML=threads.map(t=>`
+    <tr><td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong>${esc(t.title)}</strong></td>
+    <td>${esc(t.author)}</td>
+    <td><span style="font-size:11px;color:var(--muted)">${t.category||"—"}</span></td>
+    <td>${t.difficulty?`<span style="color:${dc[t.difficulty]||"#8b949e"};font-size:11.5px;font-weight:700">${t.difficulty}</span>`:"—"}</td>
+    <td>${(t.posts||[]).length-1}</td>
+    <td><button class="action-btn danger" onclick="adminDelThread(${t.id})">🗑 Delete</button></td></tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No threads found</td></tr>`;
+}
+
+/* ── POSTS PANEL ── */
+function renderPostsPanel(){
+  const q=document.getElementById("postSearch").value.toLowerCase();
+  const threads=getThreads();
+  const rows=[];
+  threads.forEach(t=>{(t.posts||[]).forEach((p,i)=>{if(!q||p.content.toLowerCase().includes(q)||p.author.toLowerCase().includes(q))rows.push({t,p,i});});});
+  rows.sort((a,b)=>b.p.ts-a.p.ts);
+  document.getElementById("postsBody").innerHTML=rows.slice(0,60).map(({t,p,i})=>`
+    <tr><td>${esc(p.author)}</td>
+    <td style="max-width:240px;color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc((p.content||"").substring(0,80))}</td>
+    <td style="font-size:12px;color:var(--muted);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</td>
+    <td style="font-size:12px;color:var(--muted)">${timeAgo(p.ts)}</td>
+    <td>${i>0?`<button class="action-btn danger" onclick="adminDelPost(${t.id},${i})">🗑</button>`:"<span style='font-size:11px;color:var(--muted)'>OP</span>"}</td></tr>`).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">No posts found</td></tr>`;
+}
+
+/* ── CONTEST SECTIONS ── */
+function renderSectionsPanel(){
+  if(!isAdmin()){document.getElementById("contestSectionList").innerHTML=`<p style="color:var(--muted)">Admin access required.</p>`;return;}
+  const secs=getContestSections().sort((a,b)=>a.order-b.order);
+  const archive=getContestArchive();
+  document.getElementById("contestSectionList").innerHTML=secs.map(s=>{
+    const count=archive.filter(c=>c.sectionId===s.id).length;
+    return `<div class="cs-item">
+      <div class="cs-icon">${s.icon||"🏆"}</div>
+      <div class="cs-info">
+        <div class="cs-name">${esc(s.name)}</div>
+        <div class="cs-desc">${esc(s.desc||"")}</div>
+      </div>
+      <div class="cs-count"><b style="color:#6ea8fe">${count}</b> contests</div>
+      <button class="action-btn danger" onclick="deleteSection(${s.id})">🗑</button>
+    </div>`;
+  }).join("") || `<p style="color:var(--muted);text-align:center;padding:20px">No sections yet.</p>`;
+}
+
+function openNewSectionModal(){
+  if(!isAdmin()){showToast("Admin access required.");return;}
+  document.getElementById("sectionModal").classList.add("active");
+}
+function closeSectionModal(){
+  document.getElementById("sectionModal").classList.remove("active");
+  ["secName","secIcon","secDesc"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("secOrder").value="99";
+}
+document.getElementById("sectionModal").addEventListener("click",e=>{if(e.target===document.getElementById("sectionModal"))closeSectionModal();});
+function createSection(){
+  const name=document.getElementById("secName").value.trim();
+  if(!name){showToast("Section name is required.");return;}
+  const secs=getContestSections();
+  secs.push({id:Date.now(),name,icon:document.getElementById("secIcon").value.trim()||"🏆",desc:document.getElementById("secDesc").value.trim(),order:parseInt(document.getElementById("secOrder").value)||99});
+  saveContestSections(secs);
+  addLog("🏆",`created contest section "${name}"`);
+  showToast("Section created!");
+  closeSectionModal();renderSectionsPanel();
+}
+function deleteSection(id){
+  if(!isAdmin())return;
+  confirm("Delete this section? Contests in it will become unsectioned.")||null;
+  const secs=getContestSections().filter(s=>s.id!==id);
+  saveContestSections(secs);
+  addLog("🗑","deleted a contest section");
+  showToast("Section deleted.");renderSectionsPanel();
+}
+
+/* ── USERS PANEL ── */
+function renderUsersPanel(){
+  const q=document.getElementById("userSearch").value.toLowerCase();
+  const rf=document.getElementById("userRoleFilter").value;
+  let users=Object.values(getUsers());
+  if(q) users=users.filter(u=>(u.username+u.displayName+(u.email||"")).toLowerCase().includes(q));
+  if(rf) users=users.filter(u=>(u.role||"user")===rf);
+  users.sort((a,b)=>(ROLE_RANK[b.role]||1)-(ROLE_RANK[a.role]||1));
+  const myRank=ROLE_RANK[me.role]||1;
+  document.getElementById("usersBody").innerHTML=users.map(u=>{
+    const targetRank=ROLE_RANK[u.role]||1;
+    const canEdit=myRank>targetRank;
+    const awards=(u.awards||[]);
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1f4fd8,#0d9488);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0">${(u.avatar||u.displayName||"?").charAt(0).toUpperCase()}</div>
+        <div><div style="font-weight:600;font-size:13px">${esc(u.displayName)}</div><div style="font-size:11px;color:var(--muted)">@${esc(u.username)}</div></div>
+      </div></td>
+      <td>${roleBadge(u.role||"user")}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(u.country||"—")}</td>
+      <td style="font-size:12px;color:var(--muted)">${awards.length?awards.slice(0,2).map(a=>`<span title="${esc(a.label)}">${a.type==="gold"?"🥇":a.type==="silver"?"🥈":a.type==="bronze"?"🥉":a.type==="honorable"?"🏅":"🎖"}</span>`).join(" ")+(awards.length>2?` +${awards.length-2}`:""):"—"}</td>
+      <td style="font-size:12px;color:var(--muted)">${u.joined?new Date(u.joined).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        ${canEdit?`<button class="action-btn primary" onclick="openRoleModal('${esc(u.username)}')">✏️ Role</button>`:""}
+        ${canEdit&&u.role!=="creator"?`<button class="action-btn danger" onclick="adminDelUser('${esc(u.username)}')">🗑</button>`:""}
+      </td></tr>`;
+  }).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No users found</td></tr>`;
+}
+
+/* ── ROLES PANEL ── */
+function renderRolesPanel(){
+  const users=Object.values(getUsers()).sort((a,b)=>(ROLE_RANK[b.role]||1)-(ROLE_RANK[a.role]||1));
+  const myRank=ROLE_RANK[me.role]||1;
+  document.getElementById("rolesTableBody").innerHTML=users.map(u=>{
+    const targetRank=ROLE_RANK[u.role]||1;
+    const canEdit=myRank>targetRank;
+    const isSelf=u.username.toLowerCase()===me.username.toLowerCase();
+    return `<tr>
+      <td><strong>${esc(u.displayName)}</strong> <span style="color:var(--muted);font-size:12px">@${esc(u.username)}</span></td>
+      <td>${roleBadge(u.role||"user")}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        ${canEdit&&!isSelf?`<button class="action-btn primary" onclick="openRoleModal('${esc(u.username)}')">✏️ Edit Role</button>`:""}
+        ${isSelf?`<span style="font-size:12px;color:var(--muted)">That's you</span>`:""}
+        ${!canEdit&&!isSelf?`<span style="font-size:12px;color:var(--muted)">Protected</span>`:""}
+      </td></tr>`;
+  }).join("");
+}
+
+/* ── ROLE MODAL ── */
+let roleTarget="";
+function openRoleModal(username){
+  if(!isAdmin()){showToast("Admin access required.");return;}
+  const users=getUsers();
+  const u=users[username.toLowerCase()];
+  if(!u)return;
+  const targetRank=ROLE_RANK[u.role]||1;
+  if((ROLE_RANK[me.role]||1)<=targetRank){showToast("You cannot edit a user of equal or higher rank.");return;}
+  roleTarget=username;
+  document.getElementById("roleModalUser").textContent=`${u.displayName} (@${u.username}) — Currently: ${u.role||"user"}`;
+  const sel=document.getElementById("roleModalSelect");
+  sel.innerHTML="";
+  const myRank=ROLE_RANK[me.role]||1;
+  const allRoles=[{v:"creator",l:"👑 Creator"},{v:"admin",l:"🛡 Admin"},{v:"moderator",l:"⚔️ Moderator"},{v:"user",l:"👤 User"}];
+  allRoles.forEach(r=>{if((ROLE_RANK[r.v]||1)<myRank){const opt=document.createElement("option");opt.value=r.v;opt.textContent=r.l;if(r.v===u.role)opt.selected=true;sel.appendChild(opt);}});
+  document.getElementById("roleModal").classList.add("active");
+}
+function closeRoleModal(){document.getElementById("roleModal").classList.remove("active");}
+document.getElementById("roleModal").addEventListener("click",e=>{if(e.target===document.getElementById("roleModal"))closeRoleModal();});
+function confirmRoleChange(){
+  const newRole=document.getElementById("roleModalSelect").value;
+  const users=getUsers();
+  if(!users[roleTarget.toLowerCase()])return;
+  if(!canSetRole(newRole)){showToast("Cannot assign that role.");return;}
+  // Prevent self-demotion
+  if(roleTarget.toLowerCase()===me.username.toLowerCase()){showToast("You cannot change your own role.");return;}
+  users[roleTarget.toLowerCase()].role=newRole;
+  saveUsers(users);
+  addLog("🛡",`changed role of @${roleTarget} to ${newRole}`);
+  showToast(`Role updated to ${newRole}.`);
+  closeRoleModal();renderUsersPanel();renderRolesPanel();
+}
+
+function canSetRole(newRole){return(ROLE_RANK[me.role]||1)>(ROLE_RANK[newRole]||1);}
+
+/* ── AWARDS PANEL ── */
+function renderAwardsPanel(){
+  const users=Object.values(getUsers());
+  const rows=[];
+  users.forEach(u=>{(u.awards||[]).forEach((a,i)=>rows.push({u,a,i}));});
+  rows.sort((a,b)=>b.a.grantedAt-a.a.grantedAt);
+  const AWARD_ICONS={gold:"🥇",silver:"🥈",bronze:"🥉",honorable:"🏅",participant:"📜",special:"⭐",custom:"🎖"};
+  document.getElementById("awardsBody").innerHTML=rows.map(({u,a,i})=>`
+    <tr>
+      <td><strong>${esc(u.displayName)}</strong> <span style="font-size:11px;color:var(--muted)">@${esc(u.username)}</span></td>
+      <td><span style="font-weight:700">${AWARD_ICONS[a.type]||"🎖"} ${esc(a.label)}</span></td>
+      <td><span style="font-size:11.5px;color:var(--muted)">${esc(a.type)}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${esc(a.grantedBy||"—")}</td>
+      <td style="font-size:12px;color:var(--muted)">${a.grantedAt?new Date(a.grantedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}</td>
+      <td><button class="action-btn danger" onclick="revokeAward('${esc(u.username)}',${i})">✕ Revoke</button></td>
+    </tr>`).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No awards granted yet</td></tr>`;
+}
+
+function openGrantAwardModal(){
+  if(!isAdmin()){showToast("Admin access required.");return;}
+  const sel=document.getElementById("awardUser");
+  sel.innerHTML=Object.values(getUsers()).map(u=>`<option value="${esc(u.username)}">${esc(u.displayName)} (@${esc(u.username)})</option>`).join("");
+  document.getElementById("awardYear").value=new Date().getFullYear();
+  document.getElementById("awardComp").value="";
+  document.getElementById("awardLabel").value="";
+  document.getElementById("awardNotes").value="";
+  updateAwardLabel();
+  document.getElementById("awardModal").classList.add("active");
+}
+function closeAwardModal(){document.getElementById("awardModal").classList.remove("active");}
+document.getElementById("awardModal").addEventListener("click",e=>{if(e.target===document.getElementById("awardModal"))closeAwardModal();});
+const AWARD_ICONS={gold:"🥇 Gold Medal",silver:"🥈 Silver Medal",bronze:"🥉 Bronze Medal",honorable:"🏅 Honorable Mention",participant:"📜 Participant",special:"⭐ Special Award",custom:"🎖 Award"};
+function updateAwardLabel(){
+  const type=document.getElementById("awardType").value;
+  const comp=document.getElementById("awardComp").value.trim();
+  const year=document.getElementById("awardYear").value.trim();
+  const suggested=`${comp||"Competition"} ${year} ${AWARD_ICONS[type]||"Award"}`.trim();
+  if(!document.getElementById("awardLabel").value||document.getElementById("awardLabel").dataset.auto==="1"){
+    document.getElementById("awardLabel").value=suggested;
+    document.getElementById("awardLabel").dataset.auto="1";
+  }
+  document.getElementById("awardPreview").textContent=document.getElementById("awardLabel").value||suggested;
+}
+document.getElementById("awardLabel").addEventListener("input",()=>{document.getElementById("awardLabel").dataset.auto="0";document.getElementById("awardPreview").textContent=document.getElementById("awardLabel").value;});
+document.getElementById("awardComp").addEventListener("input",updateAwardLabel);
+document.getElementById("awardYear").addEventListener("input",updateAwardLabel);
+function grantAward(){
+  const username=document.getElementById("awardUser").value;
+  const label=document.getElementById("awardLabel").value.trim();
+  if(!label){showToast("Award label is required.");return;}
+  const users=getUsers();
+  const u=users[username.toLowerCase()];
+  if(!u)return;
+  if(!u.awards)u.awards=[];
+  u.awards.push({type:document.getElementById("awardType").value,label,competition:document.getElementById("awardComp").value.trim(),year:document.getElementById("awardYear").value.trim(),notes:document.getElementById("awardNotes").value.trim(),grantedBy:me.displayName||me.username,grantedAt:Date.now()});
+  saveUsers(users);
+  addLog("🏅",`granted award "${label}" to @${username}`);
+  showToast(`Award granted to @${username}!`);
+  closeAwardModal();renderAwardsPanel();renderUsersPanel();
+}
+function revokeAward(username,idx){
+  if(!isAdmin()){showToast("Admin access required.");return;}
+  pendingAction=()=>{
+    const users=getUsers();
+    if(users[username.toLowerCase()]?.awards)users[username.toLowerCase()].awards.splice(idx,1);
+    saveUsers(users);addLog("🏅",`revoked award from @${username}`);showToast("Award revoked.");renderAwardsPanel();renderUsersPanel();
+  };
+  document.getElementById("confirmMsg").textContent=`Revoke this award from @${username}?`;
+  document.getElementById("confirmBtn").textContent="Revoke";
+  document.getElementById("confirmModal").classList.add("active");
+  document.getElementById("confirmBtn").onclick=()=>{pendingAction();closeConfirm();};
+}
+
+/* ── LOGS PANEL ── */
+function renderLogsPanel(){
+  const q=document.getElementById("logSearch").value.toLowerCase();
+  let logs=getLogs();
+  if(q)logs=logs.filter(l=>l.msg.toLowerCase().includes(q)||l.by.toLowerCase().includes(q));
+  document.getElementById("logsList").innerHTML=logs.map(l=>`
+    <div class="log-item">
+      <div class="log-icon">${l.icon||"•"}</div>
+      <div class="log-msg"><strong>${esc(l.by)}</strong> ${esc(l.msg)}</div>
+      <div class="log-time">${timeAgo(l.ts)}</div>
+    </div>`).join("") || `<div style="padding:28px;text-align:center;color:var(--muted)">No log entries</div>`;
+}
+function clearLogs(){if(!isAdmin()){showToast("Admin access required.");return;}saveLogs([]);renderLogsPanel();showToast("Logs cleared.");}
+
+/* ── DELETE ACTIONS ── */
+let pendingAction=null;
+function adminDelThread(id){
+  pendingAction=()=>{const threads=getThreads().filter(t=>t.id!==id);saveThreads(threads);addLog("🗑",`deleted forum thread #${id}`);showToast("Thread deleted.");renderOverview();renderThreadsPanel();};
+  document.getElementById("confirmMsg").textContent="Delete this thread and all its replies? This cannot be undone.";
+  document.getElementById("confirmBtn").textContent="Delete";
+  document.getElementById("confirmModal").classList.add("active");
+  document.getElementById("confirmBtn").onclick=()=>{pendingAction();closeConfirm();};
+}
+function adminDelPost(tid,idx){
+  pendingAction=()=>{const threads=getThreads();const t=threads.find(x=>x.id===tid);if(t&&idx>0){t.posts.splice(idx,1);saveThreads(threads);}addLog("🗑","deleted a forum post");showToast("Post deleted.");renderPostsPanel();};
+  document.getElementById("confirmMsg").textContent="Delete this post? Cannot be undone.";
+  document.getElementById("confirmBtn").textContent="Delete";
+  document.getElementById("confirmModal").classList.add("active");
+  document.getElementById("confirmBtn").onclick=()=>{pendingAction();closeConfirm();};
+}
+function adminDelUser(username){
+  if(!isAdmin()){showToast("Admin access required.");return;}
+  const users=getUsers();
+  const u=users[username.toLowerCase()];
+  if(!u)return;
+  if(!canManageUser(u.role)){showToast("Cannot delete a user of equal or higher rank.");return;}
+  pendingAction=()=>{delete users[username.toLowerCase()];saveUsers(users);addLog("👤",`deleted user @${username}`);showToast("User deleted.");renderUsersPanel();};
+  document.getElementById("confirmMsg").textContent=`Permanently delete @${username}? Their posts remain but account is removed.`;
+  document.getElementById("confirmBtn").textContent="Delete User";
+  document.getElementById("confirmModal").classList.add("active");
+  document.getElementById("confirmBtn").onclick=()=>{pendingAction();closeConfirm();};
+}
+function canManageUser(targetRole){return(ROLE_RANK[me.role]||1)>(ROLE_RANK[targetRole]||1);}
+function closeConfirm(){document.getElementById("confirmModal").classList.remove("active");pendingAction=null;}
+document.getElementById("confirmModal").addEventListener("click",e=>{if(e.target===document.getElementById("confirmModal"))closeConfirm();});
+
+/* ── TOAST ── */
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600);}
+
+/* ── INIT ── */
+renderOverview();
+</script>
+</body>
+</html>

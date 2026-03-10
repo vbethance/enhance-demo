@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Profile | Enhance</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--blue:#1f4fd8;--blue-dark:#0a2a66;--blue-light:#e8efff;--teal:#0d9488;--surface:#f8faff;--border:#e2e8f4;--text:#1e293b;--muted:#64748b;--white:#fff;--font:'DM Sans',sans-serif;--display:'Playfair Display',serif;}
+body{font-family:var(--font);background:var(--surface);color:var(--text);min-height:100vh}
+
+/* HERO */
+.profile-hero{background:linear-gradient(135deg,#0a2a66 0%,#1a3fa0 55%,#0d6b63 100%);padding:40px;position:relative;overflow:hidden}
+.profile-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none}
+.hero-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:28px;flex-wrap:wrap;position:relative;z-index:1}
+.avatar-ring{width:90px;height:90px;min-width:90px;border-radius:50%;border:3px solid rgba(110,231,231,.5);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:36px;font-weight:700;color:#fff;position:relative;flex-shrink:0}
+.user-info{flex:1}
+.user-name{font-family:var(--display);font-size:30px;color:#fff;line-height:1.2;margin-bottom:6px}
+.user-handle{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:10px}
+.user-meta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.meta-chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 13px;border-radius:20px;font-size:12.5px;color:rgba(255,255,255,.75);font-weight:500}
+.role-badge-hero{padding:4px 13px;border-radius:20px;font-size:12.5px;font-weight:700}
+
+/* BODY */
+.profile-body{max-width:900px;margin:30px auto 60px;padding:0 40px;display:grid;grid-template-columns:280px 1fr;gap:22px;align-items:start}
+.profile-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-body{padding:16px 18px}
+.info-row{display:flex;flex-direction:column;gap:11px}
+.info-item{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.info-item:last-child{border-bottom:none;padding-bottom:0}
+.info-key{color:var(--muted);font-weight:500}
+.info-val{font-weight:600;color:var(--text);text-align:right;max-width:160px;word-break:break-word}
+
+/* AWARDS */
+.awards-grid{display:flex;flex-direction:column;gap:8px}
+.award-item{background:linear-gradient(135deg,#0f1f45,#0a2a66);border:1px solid rgba(110,231,231,.2);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px}
+.award-icon{font-size:22px;flex-shrink:0}
+.award-info{flex:1}
+.award-label{font-weight:700;font-size:13px;color:#e2e8f0}
+.award-meta{font-size:11.5px;color:#6ee7e7;margin-top:2px}
+.no-awards{text-align:center;padding:28px;color:var(--muted);font-size:13px}
+
+/* THREADS */
+.thread-item{padding:13px 0;border-bottom:1px solid var(--border)}
+.thread-item:last-child{border-bottom:none}
+.thread-title{font-weight:700;font-size:13.5px;color:var(--blue-dark);cursor:pointer;text-decoration:none;display:block;margin-bottom:4px}
+.thread-title:hover{color:var(--blue)}
+.thread-meta{display:flex;gap:8px;align-items:center;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.tag-sm{background:var(--blue-light);color:var(--blue);font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+.no-threads{text-align:center;padding:28px;color:var(--muted);font-size:13px}
+
+@media(max-width:700px){.profile-body{grid-template-columns:1fr;padding:0 16px}.hero-inner{flex-direction:column;text-align:center}}
+</style>
+</head>
+<body>
+<script>
+/* ══ SHARED UTILS (inlined) ══ */
+function getUsers(){try{return JSON.parse(localStorage.getItem("enhance_users")||"{}");}catch{return{};}}
+function saveUsers(u){localStorage.setItem("enhance_users",JSON.stringify(u));}
+function getCurrentUser(){const un=localStorage.getItem("enhance_current_user");if(!un)return null;return getUsers()[un.toLowerCase()]||null;}
+function logout(){localStorage.removeItem("enhance_current_user");localStorage.removeItem("username");}
+const ROLE_RANK={creator:4,admin:3,moderator:2,user:1};
+function isCreator(){const u=getCurrentUser();return u&&u.role==="creator";}
+function isAdmin(){const u=getCurrentUser();return u&&(u.role==="admin"||u.role==="creator");}
+function isModerator(){const u=getCurrentUser();return u&&(u.role==="creator"||u.role==="admin"||u.role==="moderator");}
+(function(){try{const u=getUsers();let ch=false;if(!u["creator"]){u["creator"]={displayName:"Creator",username:"creator",email:"creator@enhance.com",password:"Creator1234!",role:"creator",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"C",awards:[]};ch=true;}if(!u["admin"]){u["admin"]={displayName:"Admin",username:"admin",email:"admin@enhance.com",password:"Admin1234!",role:"admin",country:"Mongolia",level:"International olympiad level",interests:[],joined:new Date().toISOString(),avatar:"A",awards:[]};ch=true;}if(ch)saveUsers(u);}catch(e){}})();
+function timeAgo(ts){const d=(Date.now()-ts)/1000;if(d<60)return"just now";if(d<3600)return Math.floor(d/60)+"m ago";if(d<86400)return Math.floor(d/3600)+"h ago";if(d<604800)return Math.floor(d/86400)+"d ago";return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function getThreads(){try{return JSON.parse(localStorage.getItem("enhance_threads")||"[]");}catch{return[];}}
+
+function injectHeaderStyles(){const s=document.createElement("style");s.textContent=`.sh-header{background:#fff;box-shadow:0 2px 8px rgba(30,41,100,.07);position:sticky;top:0;z-index:200}.sh-topbar{display:flex;justify-content:flex-end;align-items:center;padding:5px 36px;border-bottom:1px solid #e2e8f4;font-size:13px}.sh-topbar a,.sh-topbar span{margin-left:14px;text-decoration:none;color:#1f4fd8;font-weight:600;cursor:pointer}.sh-navbar{display:flex;justify-content:space-between;align-items:center;padding:12px 36px}.sh-logo{font-family:'Playfair Display',serif;font-size:32px;color:#0a2a66;text-decoration:none;letter-spacing:-.5px}.sh-logo span{color:#0d9488}.sh-nav{display:flex;gap:26px;align-items:center}.sh-nav a{text-decoration:none;color:#1e293b;font-weight:600;font-size:15px}.sh-nav a:hover{color:#1f4fd8}.sh-account-dropdown{position:relative;display:inline-block}.sh-dropdown{display:none;position:absolute;right:0;top:calc(100%+6px);background:#fff;min-width:160px;box-shadow:0 4px 20px rgba(30,41,100,.13);border-radius:10px;border:1px solid #e2e8f4;z-index:300;overflow:hidden}.sh-dropdown a{color:#1e293b!important;padding:10px 16px;display:block;font-size:14px;font-weight:500;text-decoration:none}.sh-dropdown a:hover{background:#e8efff}.sh-dropdown.open{display:block}.sh-math-panel{display:none;position:absolute;top:calc(100%+2px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid #e2e8f4;border-radius:14px;box-shadow:0 12px 48px rgba(30,41,100,.18);padding:20px;gap:14px;z-index:300;width:340px}.sh-math-panel.open{display:flex}.sh-math-wrap{position:relative}.sh-math-card{flex:1;background:#f8faff;border:1px solid #e2e8f4;border-radius:10px;padding:16px;text-decoration:none;color:#1e293b;transition:all .2s}.sh-math-card:hover{background:#e8efff;border-color:#1f4fd8;transform:translateY(-2px)}.sh-math-card h4{font-size:14px;font-weight:700;color:#0a2a66;margin:6px 0 4px}.sh-math-card p{font-size:12px;color:#64748b}`;document.head.appendChild(s);}
+function injectHeader(){const user=getCurrentUser();const dn=localStorage.getItem("username")||"";const ROLE_COLORS={creator:{icon:"👑",label:"Creator"},admin:{icon:"🛡",label:"Admin"},moderator:{icon:"⚔️",label:"Moderator"}};const rc=user?ROLE_COLORS[user.role]:null;let acc=user?`<div class="sh-account-dropdown"><span onclick="document.getElementById('sh-dd').classList.toggle('open');event.stopPropagation()">👤 ${esc(dn)} ${rc?`<span style="font-size:11px;opacity:.7">· ${rc.icon} ${rc.label}</span>`:""} ▾</span><div class="sh-dropdown" id="sh-dd"><a href="profile.html?u=${encodeURIComponent(user.username)}">👤 My Profile</a>${isModerator()?'<a href="admin.html">🛡 Admin Panel</a>':""}<a href="#" onclick="logout();location.href='index.html';">🚪 Log Out</a></div></div>`:`<a href="login.html">Log in</a><a href="registration.html">Sign up</a>`;
+const h=`<header class="sh-header"><div class="sh-topbar"><div>${acc}</div></div><div class="sh-navbar"><a href="index.html" class="sh-logo">Enhance<span>.</span></a><nav class="sh-nav"><a href="index.html">Home</a><a href="#">About</a><div class="sh-math-wrap"><span id="sh-math-trigger">Math ▾</span><div id="sh-math-panel" class="sh-math-panel"><a href="forum.html" class="sh-math-card"><div style="font-size:22px">💬</div><h4>Forum</h4><p>Post problems & solutions</p></a><a href="contest.html" class="sh-math-card"><div style="font-size:22px">🏆</div><h4>Contests</h4><p>Admin-curated contest problems</p></a></div></div><a href="#">Competitive Programming</a></nav></div></header>`;
+document.body.insertAdjacentHTML("afterbegin",h);
+document.getElementById("sh-math-trigger").addEventListener("click",e=>{e.stopPropagation();document.getElementById("sh-math-panel").classList.toggle("open");});
+window.addEventListener("click",()=>{document.getElementById("sh-math-panel")?.classList.remove("open");document.getElementById("sh-dd")?.classList.remove("open");});}
+injectHeaderStyles();injectHeader();
+</script>
+
+<div id="profileContent"></div>
+
+<script>
+const ROLE_COLORS_LIGHT={
+  creator:{bg:"#fef9c3",color:"#854d0e",border:"#fde68a",icon:"👑",label:"Creator"},
+  admin:  {bg:"#fee2e2",color:"#dc2626",border:"#fca5a5",icon:"🛡",label:"Admin"},
+  moderator:{bg:"#ede9fe",color:"#7c3aed",border:"#c4b5fd",icon:"⚔️",label:"Moderator"},
+  user:   {bg:"#f1f5f9",color:"#64748b",border:"#e2e8f4",icon:"👤",label:"User"}
+};
+const AWARD_ICONS={gold:"🥇",silver:"🥈",bronze:"🥉",honorable:"🏅",participant:"📜",special:"⭐",custom:"🎖"};
+const AVATAR_GRADIENTS=["linear-gradient(135deg,#1f4fd8,#0d9488)","linear-gradient(135deg,#8b5cf6,#1f4fd8)","linear-gradient(135deg,#ef4444,#f59e0b)","linear-gradient(135deg,#0d9488,#22c55e)","linear-gradient(135deg,#f59e0b,#ef4444)"];
+
+function getGradient(username){const sum=username.split("").reduce((a,c)=>a+c.charCodeAt(0),0);return AVATAR_GRADIENTS[sum%AVATAR_GRADIENTS.length];}
+
+function renderProfile(){
+  const params=new URLSearchParams(location.search);
+  const targetUsername=params.get("u")||getCurrentUser()?.username;
+  if(!targetUsername){document.getElementById("profileContent").innerHTML=`<div style="text-align:center;padding:80px;color:var(--muted)"><h3>No user specified</h3><a href="index.html">Go home</a></div>`;return;}
+  const users=getUsers();
+  const u=users[targetUsername.toLowerCase()];
+  if(!u){document.getElementById("profileContent").innerHTML=`<div style="text-align:center;padding:80px;color:var(--muted)"><h3 style="font-family:var(--display);color:var(--blue-dark)">User not found</h3><p>@${esc(targetUsername)} does not exist.</p><br><a href="index.html" style="color:var(--blue)">← Go home</a></div>`;return;}
+
+  const rc=ROLE_COLORS_LIGHT[u.role||"user"];
+  const grad=getGradient(u.username);
+  const threads=getThreads().filter(t=>t.author===u.displayName||t.author===u.username).sort((a,b)=>b.id-a.id);
+  const replies=getThreads().reduce((acc,t)=>{(t.posts||[]).slice(1).forEach(p=>{if(p.author===u.displayName||p.author===u.username)acc++;});return acc;},0);
+  const awards=u.awards||[];
+  const isOwnProfile=getCurrentUser()?.username.toLowerCase()===u.username.toLowerCase();
+
+  const awardsHtml=awards.length?awards.map(a=>`
+    <div class="award-item">
+      <div class="award-icon">${AWARD_ICONS[a.type]||"🎖"}</div>
+      <div class="award-info">
+        <div class="award-label">${esc(a.label)}</div>
+        <div class="award-meta">${a.competition?esc(a.competition)+" · ":""}${a.year||""}</div>
+      </div>
+    </div>`).join(""):`<div class="no-awards">🏅<br>No awards yet</div>`;
+
+  const threadsHtml=threads.slice(0,10).map(t=>`
+    <div class="thread-item">
+      <a class="thread-title" href="forum.html?thread=${t.id}">${esc(t.title)}</a>
+      <div class="thread-meta">
+        <span>${timeAgo(t.id)}</span>
+        ${t.category?`<span class="tag-sm">${t.category}</span>`:""}
+        ${t.difficulty?`<span class="tag-sm">${t.difficulty}</span>`:""}
+        <span>${(t.posts||[]).length-1} repl${(t.posts||[]).length-1===1?"y":"ies"}</span>
+      </div>
+    </div>`).join("") || `<div class="no-threads">💬<br>No threads posted yet</div>`;
+
+  document.getElementById("profileContent").innerHTML=`
+    <div class="profile-hero">
+      <div class="hero-inner">
+        <div class="avatar-ring" style="background:${grad}">
+          ${(u.avatar||u.displayName||"?").charAt(0).toUpperCase()}
+        </div>
+        <div class="user-info">
+          <div class="user-name">${esc(u.displayName)}</div>
+          <div class="user-handle">@${esc(u.username)} ${isOwnProfile?"<span style='font-size:12px;color:rgba(255,255,255,.4)'>(you)</span>":""}</div>
+          <div class="user-meta-row">
+            <span class="role-badge-hero" style="background:${rc.bg};color:${rc.color};border:1px solid ${rc.border}">${rc.icon} ${rc.label}</span>
+            ${u.country?`<span class="meta-chip">📍 ${esc(u.country)}</span>`:""}
+            ${u.level?`<span class="meta-chip">📚 ${esc(u.level)}</span>`:""}
+            ${awards.length?`<span class="meta-chip">🏅 ${awards.length} Award${awards.length!==1?"s":""}</span>`:""}
+            <span class="meta-chip">💬 ${threads.length} Thread${threads.length!==1?"s":""}</span>
+            <span class="meta-chip">✍️ ${replies} Repl${replies!==1?"ies":"y"}</span>
+          </div>
+        </div>
+        ${isOwnProfile&&isModerator()?`<a href="admin.html" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;padding:9px 18px;border-radius:9px;font-size:13px;font-weight:700">🛡 Admin Panel</a>`:""}
+      </div>
+    </div>
+    <div class="profile-body">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- Info Card -->
+        <div class="profile-card">
+          <div class="card-head">👤 About</div>
+          <div class="card-body">
+            <div class="info-row">
+              ${u.email?`<div class="info-item"><span class="info-key">Email</span><span class="info-val">${esc(u.email)}</span></div>`:""}
+              <div class="info-item"><span class="info-key">Username</span><span class="info-val">@${esc(u.username)}</span></div>
+              <div class="info-item"><span class="info-key">Role</span><span class="info-val">${rc.icon} ${rc.label}</span></div>
+              ${u.country?`<div class="info-item"><span class="info-key">Country</span><span class="info-val">${esc(u.country)}</span></div>`:""}
+              ${u.level?`<div class="info-item"><span class="info-key">Level</span><span class="info-val">${esc(u.level)}</span></div>`:""}
+              <div class="info-item"><span class="info-key">Joined</span><span class="info-val">${u.joined?new Date(u.joined).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"—"}</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Awards Card -->
+        <div class="profile-card">
+          <div class="card-head">🏅 Awards <span style="margin-left:auto;font-size:11px;font-weight:400;color:var(--muted)">${awards.length} total</span></div>
+          <div class="card-body">
+            <div class="awards-grid">${awardsHtml}</div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Threads -->
+      <div class="profile-card">
+        <div class="card-head">💬 Forum Threads <span style="margin-left:auto;font-size:11px;font-weight:400;color:var(--muted)">${threads.length} total</span></div>
+        <div class="card-body">${threadsHtml}</div>
+      </div>
+    </div>`;
+}
+renderProfile();
+</script>
+</body>
+</html>

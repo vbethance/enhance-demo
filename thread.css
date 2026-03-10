@@ -1,0 +1,15 @@
+.thread-item {
+  padding: 16px;
+  border-bottom: 1px solid #eef1f6;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.thread-item:hover {
+  background: #f5f8fc;
+}
+
+.thread-item.active {
+  background: #e8f0ff;
+  border-left: 4px solid #3b6cff;
+}

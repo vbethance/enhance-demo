@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum | Enhance</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <!-- MathJax for LaTeX rendering -->
+  <script>
+/* ═══════════════════════════════════════════════════════
+   ENHANCE — SHARED UTILITIES
+   Central authentication, user management, and helpers
+═══════════════════════════════════════════════════════ */
+
+// ── USER STORE ──────────────────────────────────────────
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem("enhance_users") || "{}"); }
+  catch(e) { return {}; }
+}
+
+function saveUsers(u) {
+  localStorage.setItem("enhance_users", JSON.stringify(u));
+}
+
+function getCurrentUser() {
+  const username = localStorage.getItem("enhance_current_user");
+  if (!username) return null;
+  const users = getUsers();
+  return users[username.toLowerCase()] || null;
+}
+
+function setCurrentUser(username) {
+  localStorage.setItem("enhance_current_user", username);
+  // Keep legacy "username" key for display name compatibility
+  const users = getUsers();
+  const user = users[username.toLowerCase()];
+  if (user) localStorage.setItem("username", user.displayName || user.username);
+}
+
+function logout() {
+  localStorage.removeItem("enhance_current_user");
+  localStorage.removeItem("username");
+}
+
+function isAdmin() {
+  const u = getCurrentUser();
+  return u && u.role === "admin";
+}
+
+function isModerator() {
+  const u = getCurrentUser();
+  return u && (u.role === "admin" || u.role === "moderator");
+}
+
+// Seed admin account if none exists
+(function seedAdmin() {
+  try {
+    const users = getUsers();
+    if (!users["admin"]) {
+      users["admin"] = {
+        displayName: "Admin",
+        username: "admin",
+        email: "admin@enhance.com",
+        password: "Admin1234!",
+        role: "admin",
+        country: "Mongolia",
+        level: "International olympiad level",
+        interests: [],
+        joined: new Date().toISOString(),
+        avatar: "A"
+      };
+      saveUsers(users);
+    }
+  } catch(e) {}
+})();
+
+// ── THREAD STORE ──────────────────────────────────────
+function getThreads() {
+  try { return JSON.parse(localStorage.getItem("enhance_threads") || "[]"); }
+  catch(e) { return []; }
+}
+function saveThreads(t) { localStorage.setItem("enhance_threads", JSON.stringify(t)); }
+
+// ── CONTEST STORE ─────────────────────────────────────
+function getContests() {
+  try { return JSON.parse(localStorage.getItem("enhance_contests") || "[]"); }
+  catch(e) { return []; }
+}
+function saveContests(c) { localStorage.setItem("enhance_contests", JSON.stringify(c)); }
+
+// ── HELPERS ────────────────────────────────────────────
+function timeAgo(ts) {
+  const d = (Date.now() - ts) / 1000;
+  if (d < 60)    return "just now";
+  if (d < 3600)  return Math.floor(d/60)  + "m ago";
+  if (d < 86400) return Math.floor(d/3600) + "h ago";
+  if (d < 604800) return Math.floor(d/86400) + "d ago";
+  return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+}
+
+function escHtml(s) {
+  return String(s||"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+function renderMd(raw) {
+  return escHtml(raw)
+    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g,"<em>$1</em>")
+    .replace(/`(.*?)`/g,"<code>$1</code>");
+}
+
+function initial(n) { return String(n||"?").charAt(0).toUpperCase(); }
+
+const DIFFICULTY_CONFIG = {
+  "Easy":            { color: "#22c55e", bg: "#f0fdf4", border: "#bbf7d0", label: "Easy" },
+  "Medium":          { color: "#f59e0b", bg: "#fffbeb", border: "#fde68a", label: "Medium" },
+  "Hard":            { color: "#ef4444", bg: "#fef2f2", border: "#fecaca", label: "Hard" },
+  "Extreme":         { color: "#8b5cf6", bg: "#f5f3ff", border: "#ddd6fe", label: "Extreme" },
+  "Extremely Hard":  { color: "#1e1b4b", bg: "#eef2ff", border: "#c7d2fe", label: "Extremely Hard" }
+};
+
+function difficultyBadge(d) {
+  const c = DIFFICULTY_CONFIG[d];
+  if (!c) return "";
+  return `<span style="background:${c.bg};color:${c.color};border:1px solid ${c.border};font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;">${c.label}</span>`;
+}
+
+// ── HEADER INJECTION ──────────────────────────────────
+function injectHeaderStyles() {
+  const style = document.createElement("style");
+  style.textContent = `
+    .sh-header{background:#fff;box-shadow:0 2px 8px rgba(30,41,100,.07);position:sticky;top:0;z-index:200;}
+    .sh-topbar{display:flex;justify-content:flex-end;align-items:center;padding:5px 36px;border-bottom:1px solid #e2e8f4;font-size:13px;gap:4px;}
+    .sh-topbar a,.sh-topbar span{margin-left:14px;text-decoration:none;color:#1f4fd8;font-weight:600;cursor:pointer;transition:color .15s;}
+    .sh-topbar a:hover,.sh-topbar span:hover{color:#0d9488;}
+    .sh-navbar{display:flex;justify-content:space-between;align-items:center;padding:12px 36px;}
+    .sh-logo{font-family:'Playfair Display',serif;font-size:32px;color:#0a2a66;text-decoration:none;letter-spacing:-.5px;}
+    .sh-logo span{color:#0d9488;}
+    .sh-nav{display:flex;gap:26px;align-items:center;}
+    .sh-nav a,.sh-nav span{text-decoration:none;color:#1e293b;font-weight:600;font-size:15px;transition:color .15s;cursor:pointer;}
+    .sh-nav a:hover,.sh-nav span:hover{color:#1f4fd8;}
+    .sh-account-dropdown{position:relative;display:inline-block;}
+    .sh-dropdown{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;min-width:160px;box-shadow:0 4px 20px rgba(30,41,100,.13);border-radius:10px;border:1px solid #e2e8f4;z-index:300;overflow:hidden;}
+    .sh-dropdown a{color:#1e293b!important;padding:10px 16px;display:block;font-size:14px;font-weight:500;text-decoration:none;}
+    .sh-dropdown a:hover{background:#e8efff;color:#1f4fd8!important;}
+    .sh-dropdown.open{display:block;}
+    .sh-math-panel{display:none;position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid #e2e8f4;border-radius:14px;box-shadow:0 12px 48px rgba(30,41,100,.18);padding:20px;gap:14px;z-index:300;width:480px;}
+    .sh-math-panel.open{display:flex;}
+    .sh-math-wrap{position:relative;}
+    .sh-math-card{flex:1;background:#f8faff;border:1px solid #e2e8f4;border-radius:10px;padding:16px;text-decoration:none;color:#1e293b;transition:all .2s;}
+    .sh-math-card:hover{background:#e8efff;border-color:#1f4fd8;transform:translateY(-2px);}
+    .sh-math-card h4{font-size:14px;font-weight:700;color:#0a2a66;margin:6px 0 4px;}
+    .sh-math-card p{font-size:12px;color:#64748b;}
+  `;
+  document.head.appendChild(style);
+}
+
+function injectHeader(activePage) {
+  const user = getCurrentUser();
+  const displayName = localStorage.getItem("username") || "";
+
+  let accountHtml = "";
+  if (user) {
+    const adminLink = isModerator() ? `<a href="admin.html">🛡 Admin Panel</a>` : "";
+    accountHtml = `
+      <div class="sh-account-dropdown">
+        <span onclick="document.getElementById('sh-dd').classList.toggle('open');event.stopPropagation()">
+          👤 ${escHtml(displayName)} ▾
+        </span>
+        <div class="sh-dropdown" id="sh-dd">
+          <a href="#">Profile</a>
+          ${adminLink}
+          <a href="#" onclick="logout();location.href='index.html';">Log Out</a>
+        </div>
+      </div>`;
+  } else {
+    accountHtml = `<a href="login.html">Log in</a><a href="registration.html">Sign up</a>`;
+  }
+
+  const headerHtml = `
+    <header class="sh-header">
+      <div class="sh-topbar"><div id="sh-account-area">${accountHtml}</div></div>
+      <div class="sh-navbar">
+        <a href="index.html" class="sh-logo">Enhance<span>.</span></a>
+        <nav class="sh-nav">
+          <a href="index.html">Home</a>
+          <a href="#">About</a>
+          <div class="sh-math-wrap">
+            <span id="sh-math-trigger">Math ▾</span>
+            <div id="sh-math-panel" class="sh-math-panel">
+              <a href="forum.html" class="sh-math-card">
+                <div style="font-size:22px">💬</div>
+                <h4>Forum</h4><p>Post problems & solutions</p>
+              </a>
+              <a href="contest.html" class="sh-math-card">
+                <div style="font-size:22px">🏆</div>
+                <h4>Contests</h4><p>Admin-curated contest problems</p>
+              </a>
+            </div>
+          </div>
+          <a href="#">Competitive Programming</a>
+        </nav>
+      </div>
+    </header>`;
+
+  document.body.insertAdjacentHTML("afterbegin", headerHtml);
+
+  // Math dropdown toggle
+  document.getElementById("sh-math-trigger").addEventListener("click", e => {
+    e.stopPropagation();
+    document.getElementById("sh-math-panel").classList.toggle("open");
+  });
+  window.addEventListener("click", () => {
+    document.getElementById("sh-math-panel")?.classList.remove("open");
+    document.getElementById("sh-dd")?.classList.remove("open");
+  });
+}
+
+</script>
+<script>
+    window.MathJax = {
+      tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']], processEscapes:true },
+      options: { skipHtmlTags:['script','noscript','style','textarea','pre'] },
+      startup: { typeset:false }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --blue:#1f4fd8;--blue-dark:#0a2a66;--blue-light:#e8efff;
+      --teal:#0d9488;--teal-light:#ccfbf1;--accent:#f59e0b;
+      --surface:#f8faff;--border:#e2e8f4;--text:#1e293b;--muted:#64748b;--white:#ffffff;
+      --error:#ef4444;--success:#22c55e;
+      --shadow-sm:0 1px 4px rgba(30,41,100,.09);--shadow-md:0 4px 20px rgba(30,41,100,.13);--shadow-lg:0 12px 48px rgba(30,41,100,.2);
+      --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--display:'Playfair Display',serif;
+    }
+    body{font-family:var(--font);background:var(--surface);color:var(--text);min-height:100vh}
+
+    /* FORUM WRAPPER */
+    .forum-page{max-width:1380px;margin:24px auto 60px;padding:0 16px;display:flex;gap:0;background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow-md);min-height:calc(100vh - 130px);overflow:hidden}
+
+    /* ── CATEGORY RAIL (left) ── */
+    .cat-rail{width:64px;min-width:64px;background:var(--blue-dark);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px;border-right:1px solid rgba(255,255,255,.1)}
+    .cat-btn{width:46px;height:46px;border-radius:12px;background:transparent;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .15s;position:relative}
+    .cat-btn:hover,.cat-btn.active{background:rgba(255,255,255,.12)}
+    .cat-btn.active::before{content:'';position:absolute;left:-4px;top:50%;transform:translateY(-50%);width:3px;height:24px;background:#6ee7e7;border-radius:2px}
+    .cat-btn-icon{font-size:18px}
+    .cat-btn-label{font-size:8px;color:rgba(255,255,255,.55);font-weight:600;letter-spacing:.02em}
+    .cat-btn.active .cat-btn-label{color:rgba(255,255,255,.9)}
+    .cat-divider{width:32px;height:1px;background:rgba(255,255,255,.1);margin:6px 0}
+
+    /* ── SIDEBAR ── */
+    .forum-sidebar{width:290px;min-width:290px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--white)}
+    .sidebar-head{padding:14px 14px 10px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--blue-dark),var(--blue))}
+    .sidebar-cat-name{font-weight:800;font-size:13px;color:#fff;letter-spacing:.02em}
+    .sidebar-count{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+    .sidebar-actions{display:flex;gap:8px;margin-top:10px}
+    .btn-new-topic{flex:1;background:#fff;color:var(--blue);border:none;padding:7px 10px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s}
+    .btn-new-topic:hover{background:var(--blue-light);transform:translateY(-1px)}
+    .sidebar-search{padding:8px 10px;border-bottom:1px solid var(--border)}
+    .sidebar-search input{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:var(--font);outline:none;background:var(--surface);color:var(--text);box-sizing:border-box}
+    .sidebar-search input:focus{border-color:var(--blue)}
+    .thread-list{flex:1;overflow-y:auto}
+    .thread-item{padding:11px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;display:flex;flex-direction:column;gap:4px}
+    .thread-item:hover{background:var(--surface)}
+    .thread-item.active{background:var(--blue-light);border-left:3px solid var(--blue)}
+    .thread-item-title{font-weight:600;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .thread-item.active .thread-item-title{color:var(--blue)}
+    .thread-item-meta{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .thread-tags{display:flex;gap:3px;flex-wrap:wrap}
+    .tag-pill{background:var(--blue-light);color:var(--blue);font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px}
+    .tag-pill.teal{background:var(--teal-light);color:var(--teal)}
+    .empty-list{text-align:center;padding:40px 16px;color:var(--muted)}
+    .empty-icon{font-size:30px;margin-bottom:8px}
+    .empty-list p{font-size:12.5px}
+
+    /* ── MAIN AREA ── */
+    .forum-main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .main-top{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 22px;display:flex;align-items:center;justify-content:space-between}
+    .breadcrumb{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+    .bc-blue{color:var(--blue)}
+    .thread-content{flex:1;padding:24px 28px;overflow-y:auto}
+
+    /* Welcome */
+    .welcome-state{text-align:center;margin-top:70px;color:var(--muted)}
+    .welcome-icon{font-size:50px;margin-bottom:14px}
+    .welcome-state h2{font-family:var(--display);font-size:24px;color:var(--blue-dark);margin-bottom:8px}
+    .welcome-state p{font-size:14px}
+
+    /* Thread header */
+    .thread-header{margin-bottom:22px;padding-bottom:18px;border-bottom:2px solid var(--border)}
+    .thread-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .thread-title-display{font-family:var(--display);font-size:22px;color:var(--blue-dark);line-height:1.3;flex:1}
+    .thread-header-meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+    .thread-tag-pill{background:var(--blue-light);color:var(--blue);padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+    .thread-tag-pill.teal{background:var(--teal-light);color:var(--teal)}
+
+    /* Posts */
+    .post-box{display:flex;gap:12px;margin-bottom:18px;animation:fadeUp .25s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .post-avatar{width:40px;height:40px;min-width:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:white;background:linear-gradient(135deg,var(--blue),var(--teal));position:relative;user-select:none}
+    .post-bubble{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:0 12px 12px 12px;padding:12px 16px;min-width:0}
+    .post-box.is-op .post-bubble{background:#eef3ff;border-color:#c7d9ff}
+    .post-meta{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap}
+    .post-author-name{font-weight:700;font-size:13.5px;color:var(--blue-dark)}
+    .post-time{font-size:11.5px;color:var(--muted)}
+    .post-op-label{background:var(--accent);color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+    .post-mod-label{background:#8b5cf6;color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+    .post-admin-label{background:var(--error);color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+    .post-text{font-size:14px;line-height:1.75;color:var(--text);word-break:break-word}
+    .post-text code{background:#e8efff;color:var(--blue-dark);font-family:var(--mono);font-size:12.5px;padding:1px 6px;border-radius:4px}
+    .post-text strong{font-weight:700}.post-text em{font-style:italic}
+    .post-actions{display:flex;gap:8px;margin-top:9px;align-items:center;flex-wrap:wrap}
+    .post-like-btn{background:none;border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11.5px;cursor:pointer;color:var(--muted);font-family:var(--font);transition:all .15s}
+    .post-like-btn:hover,.post-like-btn.liked{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+    .post-mod-btn{background:none;border:1px solid #fecaca;padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;color:#991b1b;font-family:var(--font);transition:all .15s}
+    .post-mod-btn:hover{background:#fef2f2}
+
+    /* Reply */
+    .reply-section{margin-top:28px;border-top:2px solid var(--border);padding-top:20px}
+    .reply-title{font-weight:700;font-size:14px;color:var(--blue-dark);margin-bottom:12px}
+    .reply-editor{display:flex;gap:12px;align-items:flex-start}
+    .reply-avatar{width:36px;height:36px;min-width:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;font-size:14px;color:white;font-weight:700;user-select:none}
+    .reply-input-wrap{flex:1}
+    .reply-toolbar{display:flex;gap:3px;align-items:center;background:var(--surface);border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;padding:5px 8px;flex-wrap:wrap}
+    .rtb-btn{background:none;border:none;padding:3px 7px;cursor:pointer;border-radius:4px;font-size:12px;color:var(--muted);font-family:var(--font);transition:background .12s}
+    .rtb-btn:hover{background:var(--blue-light);color:var(--blue)}
+    .rtb-emoji{cursor:pointer;font-size:14px;padding:2px;transition:transform .12s}
+    .rtb-emoji:hover{transform:scale(1.25)}
+    .rtb-sep{width:1px;height:16px;background:var(--border);margin:0 3px}
+    .reply-textarea{width:100%;min-height:90px;padding:10px 12px;border:1px solid var(--border);border-radius:0 0 8px 8px;font-size:13.5px;font-family:var(--font);resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box;background:var(--white);color:var(--text)}
+    .reply-textarea:focus{border-color:var(--blue)}
+    .reply-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px}
+    .latex-hint{font-size:11px;color:var(--muted);background:var(--blue-light);padding:4px 10px;border-radius:6px}
+    .reply-submit{background:linear-gradient(135deg,var(--blue),var(--teal));color:white;border:none;padding:9px 20px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font);transition:all .2s}
+    .reply-submit:hover{transform:translateY(-1px)}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(8,16,50,.6);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center}
+    .modal-overlay.active{display:flex}
+    .modal-box{background:var(--white);width:640px;max-width:95vw;max-height:90vh;overflow-y:auto;border-radius:16px;box-shadow:var(--shadow-lg);animation:modalIn .25s cubic-bezier(.34,1.46,.64,1)}
+    @keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(-20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .modal-header{background:linear-gradient(135deg,var(--blue-dark),var(--blue));padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0}
+    .modal-title{font-weight:700;font-size:15px;color:white}
+    .modal-close{background:rgba(255,255,255,.2);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+    .modal-close:hover{background:rgba(255,255,255,.3)}
+    .modal-body{padding:18px 20px}
+    .input-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+    .modal-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;font-family:var(--font);outline:none;transition:border-color .2s;box-sizing:border-box;color:var(--text);background:var(--surface)}
+    .modal-input:focus{border-color:var(--blue)}
+    .modal-input.error{border-color:var(--error)}
+    .modal-section{margin-top:14px}
+    .editor-toolbar{display:flex;align-items:center;gap:3px;background:var(--surface);border:1.5px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;padding:5px 8px;flex-wrap:wrap}
+    .tb-btn{background:none;border:1px solid transparent;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--muted);font-family:var(--font);transition:all .12s}
+    .tb-btn:hover{background:var(--blue-light);color:var(--blue);border-color:#c7d9ff}
+    .tb-divider{width:1px;height:16px;background:var(--border);margin:0 3px}
+    .tb-emoji{cursor:pointer;font-size:14px;padding:2px;transition:transform .12s}
+    .tb-emoji:hover{transform:scale(1.25)}
+    .modal-textarea{width:100%;min-height:130px;padding:10px 12px;border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;font-size:13.5px;font-family:var(--font);resize:vertical;outline:none;box-sizing:border-box;color:var(--text)}
+    .modal-textarea:focus{border-color:var(--blue)}
+    .modal-textarea.error{border-color:var(--error)}
+    .tag-options{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .tag-chip{display:flex;align-items:center;gap:4px;background:var(--surface);border:1.5px solid var(--border);padding:4px 11px;border-radius:20px;font-size:12.5px;cursor:pointer;transition:all .12s;font-family:var(--font);color:var(--text);user-select:none}
+    .tag-chip:hover{border-color:var(--blue);background:var(--blue-light)}
+    .tag-chip.selected{background:var(--blue-light);border-color:var(--blue);color:var(--blue);font-weight:700}
+    .diff-options{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .diff-chip{padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--font);border:1.5px solid;transition:all .12s;font-weight:600;user-select:none;opacity:.65}
+    .diff-chip.selected{opacity:1;transform:scale(1.05)}
+    .modal-footer{padding:12px 20px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--border)}
+    .btn-cancel{background:none;border:1.5px solid var(--border);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:600;color:var(--muted);transition:all .12s}
+    .btn-cancel:hover{border-color:var(--muted);color:var(--text)}
+    .btn-post{background:linear-gradient(135deg,var(--blue),var(--teal));color:white;border:none;padding:8px 20px;border-radius:8px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:var(--font);transition:all .2s}
+    .btn-post:hover{transform:translateY(-1px)}
+
+    /* LaTeX preview */
+    .latex-preview-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:10px;font-size:13.5px;line-height:1.8}
+    .latex-preview-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+
+    /* Admin toast */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--blue-dark);color:white;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow-md);z-index:1000;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- FORUM PAGE -->
+<div class="forum-page">
+
+  <!-- CATEGORY RAIL -->
+  <div class="cat-rail">
+    <button class="cat-btn active" data-cat="olympiad" onclick="switchCategory('olympiad',this)">
+      <span class="cat-btn-icon">🏅</span>
+      <span class="cat-btn-label">Olympiad</span>
+    </button>
+    <div class="cat-divider"></div>
+    <button class="cat-btn" data-cat="algebra" onclick="switchCategory('algebra',this)">
+      <span class="cat-btn-icon">🔣</span>
+      <span class="cat-btn-label">Algebra</span>
+    </button>
+    <button class="cat-btn" data-cat="geometry" onclick="switchCategory('geometry',this)">
+      <span class="cat-btn-icon">📐</span>
+      <span class="cat-btn-label">Geometry</span>
+    </button>
+    <button class="cat-btn" data-cat="numtheory" onclick="switchCategory('numtheory',this)">
+      <span class="cat-btn-icon">🔢</span>
+      <span class="cat-btn-label">NT</span>
+    </button>
+    <button class="cat-btn" data-cat="combo" onclick="switchCategory('combo',this)">
+      <span class="cat-btn-icon">🎲</span>
+      <span class="cat-btn-label">Combo</span>
+    </button>
+    <div class="cat-divider"></div>
+    <button class="cat-btn" data-cat="discussion" onclick="switchCategory('discussion',this)">
+      <span class="cat-btn-icon">💬</span>
+      <span class="cat-btn-label">General</span>
+    </button>
+    <button class="cat-btn" data-cat="resources" onclick="switchCategory('resources',this)">
+      <span class="cat-btn-icon">📚</span>
+      <span class="cat-btn-label">Resources</span>
+    </button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="forum-sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-cat-name" id="sidebar-cat-name">Olympiad Problems</div>
+      <div class="sidebar-count" id="sidebar-count">0 threads</div>
+      <div class="sidebar-actions">
+        <button class="btn-new-topic" id="newTopicBtn">＋ New Topic</button>
+      </div>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="🔍  Search threads…">
+    </div>
+    <div id="threadList" class="thread-list"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="forum-main">
+    <div class="main-top">
+      <div class="breadcrumb"><span class="bc-blue">COMMUNITY</span> <span style="margin:0 5px">›</span> <span id="breadCrumb">OLYMPIAD PROBLEMS</span></div>
+      <div style="display:flex;gap:8px;align-items:center" id="modActions"></div>
+    </div>
+    <div id="threadContent" class="thread-content">
+      <div class="welcome-state">
+        <div class="welcome-icon">🏆</div>
+        <h2>Welcome to the Enhance Forum</h2>
+        <p>Select a thread from the sidebar, or create a new topic to get started.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- NEW TOPIC MODAL -->
+<div id="topicModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">📝 Create New Topic</span>
+      <button class="modal-close" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="input-label">Thread Title *</label>
+      <input type="text" id="topicTitle" class="modal-input" placeholder="e.g. IMO 2024 P3 — Number Theory">
+
+      <div class="modal-section">
+        <label class="input-label">Body * <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(use $...$ for inline LaTeX, $$...$$ for display)</span></label>
+        <div class="editor-toolbar" id="editorToolbar">
+          <button class="tb-btn" data-wrap="**"><b>B</b></button>
+          <button class="tb-btn" data-wrap="*"><i>I</i></button>
+          <button class="tb-btn" data-wrap="`"><code>&lt;/&gt;</code></button>
+          <div class="tb-divider"></div>
+          <button class="tb-btn" onclick="insertLatex('inline')">$x$</button>
+          <button class="tb-btn" onclick="insertLatex('display')">$$x$$</button>
+          <div class="tb-divider"></div>
+          <span class="tb-emoji" data-emoji="💡">💡</span>
+          <span class="tb-emoji" data-emoji="📐">📐</span>
+          <span class="tb-emoji" data-emoji="✅">✅</span>
+          <span class="tb-emoji" data-emoji="🔥">🔥</span>
+          <span class="tb-emoji" data-emoji="❓">❓</span>
+        </div>
+        <textarea id="topicText" class="modal-textarea" placeholder="Write your problem, solution or question. LaTeX: $\frac{a}{b}$, $$\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}$$"></textarea>
+      </div>
+
+      <div class="modal-section">
+        <label class="input-label">LaTeX Preview</label>
+        <div class="latex-preview-box" id="latexPreview"><em style="color:var(--muted)">Preview will appear as you type…</em></div>
+      </div>
+
+      <div class="modal-section">
+        <label class="input-label">Difficulty</label>
+        <div class="diff-options" id="diffOptions">
+          <div class="diff-chip" data-diff="Easy" style="background:#f0fdf4;color:#22c55e;border-color:#bbf7d0" onclick="selectDiff(this)">Easy</div>
+          <div class="diff-chip" data-diff="Medium" style="background:#fffbeb;color:#f59e0b;border-color:#fde68a" onclick="selectDiff(this)">Medium</div>
+          <div class="diff-chip" data-diff="Hard" style="background:#fef2f2;color:#ef4444;border-color:#fecaca" onclick="selectDiff(this)">Hard</div>
+          <div class="diff-chip" data-diff="Extreme" style="background:#f5f3ff;color:#8b5cf6;border-color:#ddd6fe" onclick="selectDiff(this)">Extreme</div>
+          <div class="diff-chip" data-diff="Extremely Hard" style="background:#eef2ff;color:#1e1b4b;border-color:#c7d2fe" onclick="selectDiff(this)">Extremely Hard</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <label class="input-label">Tags</label>
+        <div class="tag-options" id="tagOptions">
+          <label class="tag-chip"><input type="checkbox" value="Number Theory"> 🔢 Number Theory</label>
+          <label class="tag-chip"><input type="checkbox" value="Geometry"> 📐 Geometry</label>
+          <label class="tag-chip"><input type="checkbox" value="Combinatorics"> 🎲 Combinatorics</label>
+          <label class="tag-chip"><input type="checkbox" value="Algebra"> 🔣 Algebra</label>
+          <label class="tag-chip"><input type="checkbox" value="Inequalities"> ⚖️ Inequalities</label>
+          <label class="tag-chip"><input type="checkbox" value="Functional Equations"> 🔁 Functional Eq.</label>
+          <label class="tag-chip"><input type="checkbox" value="Graph Theory"> 🌐 Graph Theory</label>
+          <label class="tag-chip"><input type="checkbox" value="Polynomials"> 📈 Polynomials</label>
+          <label class="tag-chip"><input type="checkbox" value="IMO"> 🥇 IMO</label>
+          <label class="tag-chip"><input type="checkbox" value="USAMO"> 🏅 USAMO</label>
+          <label class="tag-chip"><input type="checkbox" value="Putnam"> 🎓 Putnam</label>
+          <label class="tag-chip"><input type="checkbox" value="APMO"> 🌏 APMO</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="cancelTopic" class="btn-cancel">Cancel</button>
+      <button id="postTopic" class="btn-post">Post Topic →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  injectHeaderStyles();
+  injectHeader("forum");
+
+  // ── STATE ───────────────────────────────────────────
+  let currentCat = "olympiad";
+  let activeThreadId = null;
+  const CATEGORY_META = {
+    olympiad:   { name:"Olympiad Problems", icon:"🏅", crumb:"OLYMPIAD PROBLEMS" },
+    algebra:    { name:"Algebra", icon:"🔣", crumb:"ALGEBRA" },
+    geometry:   { name:"Geometry", icon:"📐", crumb:"GEOMETRY" },
+    numtheory:  { name:"Number Theory", icon:"🔢", crumb:"NUMBER THEORY" },
+    combo:      { name:"Combinatorics", icon:"🎲", crumb:"COMBINATORICS" },
+    discussion: { name:"General Discussion", icon:"💬", crumb:"GENERAL DISCUSSION" },
+    resources:  { name:"Resources & Materials", icon:"📚", crumb:"RESOURCES" }
+  };
+
+  // ── CATEGORY SWITCH ─────────────────────────────────
+  function switchCategory(cat, btn) {
+    currentCat = cat;
+    document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const meta = CATEGORY_META[cat];
+    document.getElementById("sidebar-cat-name").textContent = meta.name;
+    document.getElementById("breadCrumb").textContent = meta.crumb;
+    activeThreadId = null;
+    document.getElementById("threadContent").innerHTML = `<div class="welcome-state"><div class="welcome-icon">${meta.icon}</div><h2>${meta.name}</h2><p>Select a thread or create a new topic.</p></div>`;
+    renderThreadList();
+  }
+
+  // ── THREADS ─────────────────────────────────────────
+  function catThreads() {
+    return getThreads().filter(t=>t.category===currentCat);
+  }
+
+  function renderThreadList(q="") {
+    const list = catThreads().filter(t => !q || t.title.toLowerCase().includes(q.toLowerCase()));
+    const count = catThreads().length;
+    document.getElementById("sidebar-count").textContent = count + " thread" + (count!==1?"s":"");
+
+    const container = document.getElementById("threadList");
+    if (!list.length) {
+      container.innerHTML = `<div class="empty-list"><div class="empty-icon">${q?"🔍":"📭"}</div><p>${q?"No matching threads.":"No threads yet. Be the first!"}</p></div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    list.forEach(t=>{
+      const el = document.createElement("div");
+      el.className = "thread-item" + (t.id===activeThreadId?" active":"");
+      const tags = (t.tags||[]).slice(0,2).map(g=>`<span class="tag-pill">${escHtml(g)}</span>`).join("");
+      const diff = t.difficulty ? difficultyBadge(t.difficulty) : "";
+      el.innerHTML = `
+        <div class="thread-item-title">${escHtml(t.title)}</div>
+        <div class="thread-item-meta">
+          <span>👤 ${escHtml(t.author)}</span>•
+          <span>💬 ${t.posts.length}</span>•
+          <span>${timeAgo(t.id)}</span>
+        </div>
+        <div class="thread-tags">${tags}${diff}</div>`;
+      el.addEventListener("click",()=>{
+        activeThreadId=t.id;
+        renderThreadList(document.getElementById("searchInput").value);
+        openThread(t.id);
+      });
+      container.appendChild(el);
+    });
+  }
+
+  // ── OPEN THREAD ─────────────────────────────────────
+  function openThread(id) {
+    const threads = getThreads();
+    const t = threads.find(x=>x.id===id);
+    if (!t) return;
+
+    const user = getCurrentUser();
+    const isMod = isModerator();
+    const tagRow = (t.tags||[]).map(g=>`<span class="thread-tag-pill">${escHtml(g)}</span>`).join(" ");
+    const diffBadge = t.difficulty ? difficultyBadge(t.difficulty) : "";
+
+    const postsHtml = t.posts.map((p,i)=>{
+      const roleLabel = (()=>{
+        const pUser = getUsers()[p.author?.toLowerCase()];
+        if (!pUser) return "";
+        if (pUser.role==="admin") return `<span class="post-admin-label">Admin</span>`;
+        if (pUser.role==="moderator") return `<span class="post-mod-label">Moderator</span>`;
+        if (i===0) return `<span class="post-op-label">OP</span>`;
+        return "";
+      })();
+      const modBtn = isMod ? `<button class="post-mod-btn" onclick="deletePost(${id},${i})">🗑 Delete</button>` : "";
+      return `
+        <div class="post-box ${i===0?"is-op":""}" id="post-${id}-${i}">
+          <div class="post-avatar">${initial(p.author)}</div>
+          <div class="post-bubble">
+            <div class="post-meta">
+              <span class="post-author-name">${escHtml(p.author)}</span>
+              ${roleLabel}
+              <span class="post-time">${timeAgo(p.ts||id)}</span>
+            </div>
+            <div class="post-text latex-content" data-raw="${escHtml(p.content)}">${renderMd(p.content)}</div>
+            <div class="post-actions">
+              <button class="post-like-btn ${p.liked?"liked":""}" data-idx="${i}">
+                ${p.liked?"❤️":"🤍"} ${p.likes||0}
+              </button>
+              ${modBtn}
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+    const replySection = `
+      <div class="reply-section">
+        <div class="reply-title">💬 Write a Reply</div>
+        <div class="reply-editor">
+          <div class="reply-avatar">${initial(user?user.displayName:"?")}</div>
+          <div class="reply-input-wrap">
+            <div class="reply-toolbar">
+              <button class="rtb-btn" data-wrap="**"><b>B</b></button>
+              <button class="rtb-btn" data-wrap="*"><i>I</i></button>
+              <button class="rtb-btn" data-wrap="\`"><code>&lt;/&gt;</code></button>
+              <div class="rtb-sep"></div>
+              <button class="rtb-btn" onclick="insertReplyLatex('inline')">$x$</button>
+              <button class="rtb-btn" onclick="insertReplyLatex('display')">$$x$$</button>
+              <div class="rtb-sep"></div>
+              <span class="rtb-emoji" data-emoji="💡">💡</span>
+              <span class="rtb-emoji" data-emoji="✅">✅</span>
+              <span class="rtb-emoji" data-emoji="🔥">🔥</span>
+            </div>
+            <textarea class="reply-textarea" id="replyText" placeholder="Share your solution, hint, or thoughts…\nUse $formula$ for inline LaTeX, $$formula$$ for display."></textarea>
+            <div class="reply-footer">
+              <span class="latex-hint">💡 LaTeX: $\frac{a}{b}$ | $$\sum_{k=1}^{n}$$</span>
+              <button class="reply-submit" id="replyBtn">Post Reply →</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    const modDeleteThread = isMod ? `<button onclick="deleteThread(${id})" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">🗑 Delete Thread</button>` : "";
+
+    document.getElementById("threadContent").innerHTML = `
+      <div class="thread-header">
+        <div class="thread-title-row">
+          <div class="thread-title-display">${escHtml(t.title)}</div>
+          <div>${modDeleteThread}</div>
+        </div>
+        <div class="thread-header-meta">
+          <span>👤 ${escHtml(t.author)}</span>•
+          <span>${timeAgo(t.id)}</span>
+          ${diffBadge}
+          ${tagRow}
+        </div>
+      </div>
+      ${postsHtml}
+      ${replySection}`;
+
+    // Render LaTeX
+    renderAllLatex();
+
+    // Like buttons
+    document.querySelectorAll(".post-like-btn").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        if (!getCurrentUser()) { showToast("Log in to like posts!"); return; }
+        const idx = +btn.dataset.idx;
+        const threads = getThreads();
+        const th = threads.find(x=>x.id===id);
+        if (!th) return;
+        th.posts[idx].liked = !th.posts[idx].liked;
+        th.posts[idx].likes = (th.posts[idx].likes||0)+(th.posts[idx].liked?1:-1);
+        saveThreads(threads);
+        openThread(id);
+      });
+    });
+
+    // Reply toolbar
+    document.querySelectorAll(".rtb-btn[data-wrap]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const ta = document.getElementById("replyText");
+        const w=btn.dataset.wrap,s=ta.selectionStart,e=ta.selectionEnd;
+        const sel=ta.value.substring(s,e)||"text";
+        ta.value=ta.value.substring(0,s)+w+sel+w+ta.value.substring(e);
+        ta.focus();
+      });
+    });
+    document.querySelectorAll(".rtb-emoji").forEach(em=>{
+      em.addEventListener("click",()=>{ const ta=document.getElementById("replyText"); ta.value+=em.dataset.emoji; ta.focus(); });
+    });
+
+    // Post reply
+    document.getElementById("replyBtn").addEventListener("click",()=>{
+      if (!getCurrentUser()) { showToast("Please log in to reply!"); return; }
+      const ta=document.getElementById("replyText");
+      if (!ta.value.trim()) { ta.style.borderColor="#ef4444"; return; }
+      ta.style.borderColor="";
+      const threads=getThreads();
+      const th=threads.find(x=>x.id===id);
+      if (!th) return;
+      const user=getCurrentUser();
+      th.posts.push({ author:user.displayName||user.username, content:ta.value, ts:Date.now(), likes:0, liked:false });
+      saveThreads(threads);
+      renderThreadList(document.getElementById("searchInput").value);
+      openThread(id);
+      setTimeout(()=>{
+        const posts=document.querySelectorAll(".post-box");
+        posts[posts.length-1]?.scrollIntoView({behavior:"smooth",block:"end"});
+      },100);
+    });
+  }
+
+  // ── DELETE ACTIONS ──────────────────────────────────
+  function deletePost(threadId, postIdx) {
+    if (!isModerator()) return;
+    if (!confirm("Delete this post?")) return;
+    const threads=getThreads();
+    const t=threads.find(x=>x.id===threadId);
+    if (!t || postIdx===0) { if(postIdx===0) alert("Cannot delete the original post. Delete the whole thread instead."); return; }
+    t.posts.splice(postIdx,1);
+    saveThreads(threads);
+    renderThreadList();
+    openThread(threadId);
+    showToast("Post deleted.");
+  }
+
+  function deleteThread(threadId) {
+    if (!isModerator()) return;
+    if (!confirm("Delete this entire thread? This cannot be undone.")) return;
+    let threads=getThreads();
+    threads=threads.filter(t=>t.id!==threadId);
+    saveThreads(threads);
+    activeThreadId=null;
+    renderThreadList();
+    document.getElementById("threadContent").innerHTML=`<div class="welcome-state"><div class="welcome-icon">🗑</div><h2>Thread Deleted</h2><p>The thread has been removed.</p></div>`;
+    showToast("Thread deleted.");
+  }
+
+  // ── MODAL ───────────────────────────────────────────
+  let selectedDiff = "";
+  const modal = document.getElementById("topicModal");
+
+  function openModal() {
+    if (!getCurrentUser()) { showToast("Please log in to create a thread!"); return; }
+    modal.classList.add("active");
+    document.getElementById("topicTitle").focus();
+  }
+  function closeModal() {
+    modal.classList.remove("active");
+    document.getElementById("topicTitle").value="";
+    document.getElementById("topicTitle").classList.remove("error");
+    document.getElementById("topicText").value="";
+    document.getElementById("topicText").classList.remove("error");
+    document.getElementById("latexPreview").innerHTML=`<em style="color:var(--muted)">Preview will appear as you type…</em>`;
+    document.querySelectorAll(".tag-chip").forEach(c=>c.classList.remove("selected"));
+    document.querySelectorAll(".diff-chip").forEach(c=>c.classList.remove("selected"));
+    selectedDiff="";
+  }
+
+  document.getElementById("newTopicBtn").addEventListener("click",openModal);
+  document.getElementById("closeModal").addEventListener("click",closeModal);
+  document.getElementById("cancelTopic").addEventListener("click",closeModal);
+  modal.addEventListener("click",e=>{ if(e.target===modal) closeModal(); });
+
+  function selectDiff(el) {
+    document.querySelectorAll(".diff-chip").forEach(c=>c.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedDiff=el.dataset.diff;
+  }
+
+  // LaTeX preview in modal
+  let previewTimer = null;
+  document.getElementById("topicText").addEventListener("input",()=>{
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(()=>{
+      const raw = document.getElementById("topicText").value;
+      const preview = document.getElementById("latexPreview");
+      preview.innerHTML = renderMd(raw);
+      if (window.MathJax) MathJax.typesetPromise([preview]).catch(()=>{});
+    }, 400);
+  });
+
+  // Modal toolbar
+  document.querySelectorAll(".tb-btn[data-wrap]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const ta=document.getElementById("topicText");
+      const w=btn.dataset.wrap,s=ta.selectionStart,e=ta.selectionEnd;
+      const sel=ta.value.substring(s,e)||"text";
+      ta.value=ta.value.substring(0,s)+w+sel+w+ta.value.substring(e);
+      ta.focus();
+    });
+  });
+  document.querySelectorAll(".tb-emoji").forEach(em=>{
+    em.addEventListener("click",()=>{ const ta=document.getElementById("topicText"); ta.value+=em.dataset.emoji; ta.focus(); });
+  });
+  document.querySelectorAll(".tag-chip").forEach(c=>c.addEventListener("click",()=>c.classList.toggle("selected")));
+
+  function insertLatex(type) {
+    const ta=document.getElementById("topicText");
+    const ins = type==="inline"?"$formula$":"$$\nformula\n$$";
+    const s=ta.selectionStart;
+    ta.value=ta.value.substring(0,s)+ins+ta.value.substring(ta.selectionEnd);
+    ta.focus();
+  }
+  function insertReplyLatex(type) {
+    const ta=document.getElementById("replyText");
+    if (!ta) return;
+    const ins=type==="inline"?"$formula$":"$$\nformula\n$$";
+    const s=ta.selectionStart;
+    ta.value=ta.value.substring(0,s)+ins+ta.value.substring(ta.selectionEnd);
+    ta.focus();
+  }
+
+  // Post topic
+  document.getElementById("postTopic").addEventListener("click",()=>{
+    const titleEl=document.getElementById("topicTitle");
+    const textEl=document.getElementById("topicText");
+    let valid=true;
+    if (!titleEl.value.trim()) { titleEl.classList.add("error"); valid=false; } else titleEl.classList.remove("error");
+    if (!textEl.value.trim()) { textEl.classList.add("error"); valid=false; } else textEl.classList.remove("error");
+    if (!valid) return;
+
+    const tags=[...document.querySelectorAll(".tag-chip.selected")].map(c=>c.querySelector("input").value);
+    const user=getCurrentUser();
+    const threads=getThreads();
+    const newThread={
+      id:Date.now(),
+      category:currentCat,
+      title:titleEl.value.trim(),
+      author:user.displayName||user.username,
+      difficulty:selectedDiff,
+      tags,
+      posts:[{author:user.displayName||user.username,content:textEl.value,ts:Date.now(),likes:0,liked:false}]
+    };
+    threads.unshift(newThread);
+    saveThreads(threads);
+    activeThreadId=newThread.id;
+    renderThreadList();
+    closeModal();
+    openThread(newThread.id);
+    showToast("Thread posted!");
+  });
+
+  // ── LaTeX RENDERING ─────────────────────────────────
+  function renderAllLatex() {
+    if (!window.MathJax) return;
+    const elements=document.querySelectorAll(".latex-content");
+    elements.forEach(el=>{
+      el.innerHTML=renderMd(el.dataset.raw||"");
+    });
+    MathJax.typesetPromise([...elements]).catch(()=>{});
+  }
+
+  // ── SEARCH ──────────────────────────────────────────
+  document.getElementById("searchInput").addEventListener("input",()=>{
+    renderThreadList(document.getElementById("searchInput").value);
+  });
+
+  // ── TOAST ────────────────────────────────────────────
+  function showToast(msg) {
+    const t=document.getElementById("toast");
+    t.textContent=msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"),2500);
+  }
+
+  // ── INIT ────────────────────────────────────────────
+  renderThreadList();
+</script>
+</body>
+</html>
